@@ -85,8 +85,8 @@ segment_plan=[每个计划段的链ID、原文起止、预算、首尾状态、�
 budget_status=[UNSET／DRAFT／CHECKED／FROZEN／INVALID]
 budget_ref=[当前完整预算与语速卡的实际位置和版本]
 plan_ref=[当前场次分析、预算、分段记录的实际位置与版本；不指向已删除的分镜设计表]
-transition_plan=[逐对相邻段的类型载体、落位、完整首尾状态、尚未开始的动作、计划版本与PLANNED／DONE]
-transition_review=[每段正文版本、段内切点、前后边界及check_scope=TEXT的PENDING／PASS／FAIL、问题与修正；媒体观察引用[7.9](state-and-revision.md#s7-9)记录，不由文字PASS推断成片通过]
+transition_plan=[逐对相邻段的类型载体、落位、完整首尾状态、尚未开始的动作、计划版本与PLANNED／DONE／INVALID]
+transition_review=[每段正文版本、段内切点、前后边界及check_scope=TEXT的PENDING／PASS／FAIL／INVALID、问题与修正；媒体观察引用[7.9](state-and-revision.md#s7-9)记录，不由文字PASS推断成片通过]
 characters_state=[有效文字正文的逐角色位置、朝向、姿态、衣装、伤污、形态、意图与持续表演，关联character_profiles身份和身高版本；媒体偏差另记观察，不自动覆盖]
 viewing_state=[从有效文字正文预期提供给观众的明确信息、可能推测但未证实事项、待解问题及角色各自已知／误解；关联段号、镜号、原文证据及版本。文字呈现不等于观众实际反应或已生成媒体，未交付计划不能记为已呈现；真实媒体漏呈现或提前揭示时引用[7.9](state-and-revision.md#s7-9)观察并评估后续影响]
 weapons_props_state=[物件唯一名称、数量、持有人、左／右手、位置、离手、损坏及归属变化]
@@ -104,7 +104,7 @@ blocking_items=[NONE或原未完成step_id、具体缺口及阻断范围；依�
 edit_lock=[NONE或当前返修目标ID]
 edit_context=[返修前phase、next_required、last_completed_formal、script_cursor、旧版本、修改范围；源于媒体反馈时附观察记录、时码证据、归责判断及本次主要改动，检查后恢复原目标]
 invalidated_from=[NONE或第一个失效目标]
-return_to=[增量资产、补材料或恢复后返回的原phase和唯一目标；无则NONE]
+return_to=[增量资产、补材料、预览确认等待或恢复后返回的原phase和唯一目标；无则NONE]
 delivery_mode=[PROMPT_CLEAN，预算与状态另存／另区；用户主动展开时记录AUDIT]
 delivery_channel=[FILE／CHAT]
 state_storage=[FILE／CONVERSATION]
@@ -165,15 +165,17 @@ WAIT_USER时补材料或决定仅闭合原步骤。仍缺内容保持IN_PROGRESS
 
 用户要求修改、调整、删增动作／镜头／台词／声音／约束或明确否定当前段，即进入EDIT_LOCK。记录edit_context，冻结原游标、段号和下一目标；本轮只处理指定返修，即使同时说继续也不追加新段。
 
-局部修改不改变覆盖及段尾：输出目标完整修订正文，其他未受影响内容逐字或等义保留，不以“其余不变”代替整段；重算受影响时长与检查，更新本段版本。覆盖、script_cursor、last_completed_formal和原next_required保持。完成后解锁并恢复原phase和下一目标，等待继续。
+局部修改不改变覆盖及段尾：输出目标完整修订正文，其他未受影响内容逐字或等义保留，不以“其余不变”代替整段；重算受影响时长与检查，更新本段版本。覆盖、script_cursor、last_completed_formal和原next_required保持。修订交付成功后 `last_output=REVISION_FORMAL_n`；非正式段返修保留原 last_output 并在 edit_context 记录，不虚报新段。完成后解锁并恢复原phase和下一目标，等待继续。
 
-修改段尾状态、原文覆盖或已确认段界：先保留历史版本，从首个实际受影响边界标记后续正文、预算、首尾计划与相关step_ledger为INVALID。无关资产与前置继续有效，不因局部返修重启项目。
+修改段尾状态、原文覆盖或已确认段界：先保留历史版本，从首个实际受影响边界标记后续正文、预算、`transition_plan`／`transition_review`与相关step_ledger为INVALID。无关资产与前置继续有效，不因局部返修重启项目。
 
 回退到最后连续有效正式段，script_cursor回到其后的第一未覆盖链。被修目标如已完整修订、检查并交付且仍紧接有效前缀，可以作为新有效版本提交；受影响后续仍保持INVALID，不自动重发。目标本身未完成时不得算有效前缀。
 
 覆盖边界变化需重排分段时，next_required指向最早受影响的SCxx_BUDGET_SEGMENT；事实或空间分析也失效时先回对应SCxx_ANALYSIS。上游仍有效且仅需重做后续正文时指向第一个失效FORMAL_n。这只是设置目标，不在本轮执行它。
 
 修改取景、切点或声音即使未改人物物理末态，也要核对是否改变观众实际看见的证据与揭示时机；若后续依赖该信息，按实际依赖更新viewing_state并使受影响后续失效，不让漏看或提前看见的信息仍冒充原版本。
+
+局部改动对白说法、语言、揭示、焦点或剪取时，在当前场同一时钟上对照“关键语义到达→证据首次清楚→人物实际获知→反应开始→动作结果→切点”，区分观众和角色各自的信息来源。换语种／译稿按最终已授权词句重新定位语义到达，不照搬旧语言词序的反应点，也不因此取得翻译权限；正文原台词仍受保护。只复算与本次改动相连的预算、话轮和边界，并沿真实依赖追踪后续；无关镜头、资产和已确认事实继续有效。必要的语义与阅读窗口不能为了保住旧累计时长而压缩，若改变固定时长或已确认段界则按既有授权分支处理。
 
 修改衔接只影响摄影表达且不改变状态与覆盖时按局部修；改变位置、持物、动势、声源或状态时按上述后续失效处理。删除衔接也要复核实际首尾，而不是额外减少一段覆盖。
 

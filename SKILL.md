@@ -11,7 +11,7 @@ description: >
 
 # 剧本转分镜提示词
 
-技能包版本：0.1.0。规则基线与项目状态版本：1.8；`workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V3`。
+技能包版本：0.2.0。规则基线与项目状态版本：1.8；`workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V3`。
 
 将中文剧本、剧情或动作笔记依次整理成项目分析、完整资产图片提示词、集场分析、预算分段及完整视频母稿。用户指定模型和模式后，按[模型提交适配](references/model-adaptation.md#s5-2)从同版母稿派生提交稿，核对真实输入与能力限制。
 
@@ -45,7 +45,7 @@ description: >
 | 状态恢复 | [恢复](references/state-and-revision.md#s7-7)、[迁移](references/state-and-revision.md#s7-8) | 完整状态、有效覆盖正文、预算分段、前驱证据、实际末态和未完成返修；恢复不消费剧情 |
 | 已有媒体检查 | [媒体观察](references/state-and-revision.md#s7-9)＋被检查内容对应规则 | 实际媒体、原文、母稿／适配稿、真实输入与任务证据；记录可检查范围、时码、偏差及归责 |
 
-返修继承原任务依赖，未受影响材料可复用。素材缺失与能力未知仅阻断实际依赖该条件的目标，不统一阻断全部文字交付。
+返修继承原任务依赖，未受影响材料可复用。素材缺失与能力未知仅阻断实际依赖该条件的目标，不统一阻断全部文字交付。涉及剪取、叠化或技术尾料时补读[素材与成片时钟](references/timing.md#s6-7)；用户选择预览确认、段界换画面、静止锚点或适配稿外貌省略时补读[可选策略](references/model-adaptation.md#optional-strategies)，默认不启用这些策略。
 
 ## 使用范围与依据
 
@@ -62,6 +62,8 @@ description: >
 ## 七步流程与逐轮交付
 
 固定execution_mode=REVIEW、step_policy=STRICT、segment_delivery=ONE_AT_A_TIME。每轮入口锁定唯一target=next_required，只完成该单元；完成后设置awaiting_continue=true并停止。“继续”只授权当前下一单元，不是永久批量授权。“一次出完”“只要Prompt”不自动撤销逐步规则；只有用户明确修改执行规则时才调整。
+
+用户要求“直接给完整版”“不要预览”或跳过确认，只改变交付方式，不豁免画幅、画面质感、单段时长上限三项确认。三项未齐时仍只交付分析、完整风格候选和选择请求，不输出正式视频段或审阅预览；预览本身也不能在三项未确认时启用。用户已明确决定同项时按其决定，不重复询问。
 
 已完成且未变化的成果凭实际位置、版本与适用范围复用，不重复创作。当前步骤内部的读取、计算、写入、检查与修正一次完成，不增加内部等待点。必要决定缺失时集中列明，不把日常摄影选择变成审批。
 
