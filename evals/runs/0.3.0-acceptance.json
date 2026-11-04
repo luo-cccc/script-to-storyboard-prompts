@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "recorded_at": "2026-11-04T07:09:49.882821+00:00",
+  "python_version": "3.14.6",
+  "platform": "win32",
+  "scope": "S: static package checks; D: deterministic synthetic regression. H/F/M not run by this command.",
+  "test_count": 33,
+  "inputs_unchanged": true,
+  "input_sha256": {
+    "docs/分镜资源对比研究-2026-11-03.md": "35abc22e27341f03354ec00bce2a5258775ca54befe9fb3fdc9790baa96c2f94",
+    "docs/剧本转分镜提示词-技能化方案.md": "6fbb415aabc294375b89b0fa8b8a0534e350566208102872608234b9316893fb",
+    "docs/技能包实施与验收记录.md": "a16dd20fd8773106e9fef5cc5adae9c2cd39f7287cdd2e07f69cfda180e98ff9",
+    "evals/fixtures/state-budget/base-state.json": "da5b23fd915fde8aa7faefe9c42ce049ff9d47556ee4f41fffc0baf833ce6841",
+    "evals/fixtures/state-budget/budgets.json": "104f4aa4feaf4e48331d876699675a31a9d8d1c88257fbb499361d6f18eaafae",
+    "evals/fixtures/state-budget/expected.json": "9e3ccc7ad56c270818aba1ea14a9ba8639b220f0283b8ec082f86bcf680c4956",
+    "evals/fixtures/state-budget/prompts.md": "0e85331600b910e36e216b8d42ec0c887705d54143203103f5411a9a5177adfb",
+    "evals/fixtures/state-budget/README.md": "21fc9cb129240e387bad8f08ffac7b9631eabe0121d50be519c099920b0633e7",
+    "evals/fixtures/state-budget/source.md": "19dfc4e8838d3fe96388e8f73d129ee47084a8ab8a47aa2ba6ddc4e34e131ef5",
+    "evals/scenarios.md": "6f572b59a62b90efcf33c49686b9dd23d439c04fb82a881b563d995e8d4e30fe",
+    "README.md": "e2cccf35e7b95a68cc355e4fee39964c635794ae0a1d50d0aa87c8a16f0d08a0",
+    "references/asset-templates.md": "f10a6809095dfeab1e4bfa19cb3d795da939e9fb48db8150a0170117c4cab918",
+    "references/camera-reference.md": "5a97bde59292a1229b1216f1cff14ca06c3975cf0ed5c91af1e571bc1e397225",
+    "references/model-adaptation.md": "622435bf33df3d920d7b5e15eefd38d6a2e93c0f0c0ea3bd55d146e41fd5accc",
+    "references/shot-writing.md": "6d43feca8106318e9d50fb7808a68843cebb0b4efb9631a51870354196355435",
+    "references/state-and-revision.md": "6b66702dc2ac65e70280f34b02a5d9f21141cfb0f4e67c59aba562d4ecbebfc9",
+    "references/timing.md": "f70b39fac80a14362b1f67148d15119212f6d41091bf66484ccc4e39a9a34294",
+    "references/validation.md": "6cd874ad9f0bc84bccf5500a3dac7d82d581417b1eafc891bae12e60c71a6de0",
+    "references/video-template.md": "596a9249a881685f534d29e2459940baea43e90727dbc420b76bc219ef5c89c5",
+    "scripts/check_package.py": "bec8e99e5563eba99931175337a05af209266e774117946d462a52128ed28ac9",
+    "scripts/run_checks.py": "5111232a84f9fcfa0dd75dc5c5bf80bbe2761a9815bfb89b075715c721f98574",
+    "scripts/storyboard_checks.py": "c4d3ce96a28706b555cb2bf7661b1916fda3b18651d41cafacc690c92f86877e",
+    "SKILL.md": "ed7864d2844ec240a886c7303c13c6204c8e84f16c716b19c84b1dcfec42b590",
+    "specs/script-to-storyboard-prompts-v1.8.txt": "ed1d533c3019d7048a602887b523967d2312dd2cc6a23fe9ac8891bf91d5defe",
+    "tests/test_state_budget.py": "0e42ee447ec96ceeb6ebdbb5583f3c49964c024fa736c28cb62c7b8978d31c18"
+  },
+  "changed_inputs": [],
+  "package": {
+    "command": [
+      "python",
+      "-I",
+      "-B",
+      "-X",
+      "utf8",
+      "scripts/check_package.py"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"status\": \"PASS\",\n  \"scope\": \"Static package contracts only; no model behavior, external capability, or media test.\",\n  \"package_version\": \"0.3.0\",\n  \"state_version\": \"1.9\",\n  \"local_links\": 302,\n  \"anchor_references\": 175,\n  \"state_fields\": 75,\n  \"human_case_count\": 60,\n  \"errors\": [],\n  \"runtime_sha256\": {\n    \"SKILL.md\": \"ed7864d2844ec240a886c7303c13c6204c8e84f16c716b19c84b1dcfec42b590\",\n    \"references/asset-templates.md\": \"f10a6809095dfeab1e4bfa19cb3d795da939e9fb48db8150a0170117c4cab918\",\n    \"references/camera-reference.md\": \"5a97bde59292a1229b1216f1cff14ca06c3975cf0ed5c91af1e571bc1e397225\",\n    \"references/model-adaptation.md\": \"622435bf33df3d920d7b5e15eefd38d6a2e93c0f0c0ea3bd55d146e41fd5accc\",\n    \"references/shot-writing.md\": \"6d43feca8106318e9d50fb7808a68843cebb0b4efb9631a51870354196355435\",\n    \"references/state-and-revision.md\": \"6b66702dc2ac65e70280f34b02a5d9f21141cfb0f4e67c59aba562d4ecbebfc9\",\n    \"references/timing.md\": \"f70b39fac80a14362b1f67148d15119212f6d41091bf66484ccc4e39a9a34294\",\n    \"references/validation.md\": \"6cd874ad9f0bc84bccf5500a3dac7d82d581417b1eafc891bae12e60c71a6de0\",\n    \"references/video-template.md\": \"596a9249a881685f534d29e2459940baea43e90727dbc420b76bc219ef5c89c5\",\n    \"scripts/check_package.py\": \"bec8e99e5563eba99931175337a05af209266e774117946d462a52128ed28ac9\",\n    \"scripts/run_checks.py\": \"5111232a84f9fcfa0dd75dc5c5bf80bbe2761a9815bfb89b075715c721f98574\",\n    \"scripts/storyboard_checks.py\": \"c4d3ce96a28706b555cb2bf7661b1916fda3b18651d41cafacc690c92f86877e\",\n    \"evals/scenarios.md\": \"6f572b59a62b90efcf33c49686b9dd23d439c04fb82a881b563d995e8d4e30fe\"\n  }\n}\n",
+    "stderr": ""
+  },
+  "tests": {
+    "command": [
+      "python",
+      "-I",
+      "-B",
+      "-X",
+      "utf8",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-v"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "test_base_fixture_and_literal_expected (test_state_budget.StateBudgetTests.test_base_fixture_and_literal_expected) ... ok\ntest_budget_fixtures_and_offset_parallel (test_state_budget.StateBudgetTests.test_budget_fixtures_and_offset_parallel) ... ok\ntest_budget_local_clock_gap_overlap_and_limit (test_state_budget.StateBudgetTests.test_budget_local_clock_gap_overlap_and_limit) ... ok\ntest_budget_version_negative_bool_and_speech (test_state_budget.StateBudgetTests.test_budget_version_negative_bool_and_speech) ... ok\ntest_cancel_complete_preserves_production_and_original (test_state_budget.StateBudgetTests.test_cancel_complete_preserves_production_and_original) ... ok\ntest_cancel_keeps_edit_lock_and_outer_context (test_state_budget.StateBudgetTests.test_cancel_keeps_edit_lock_and_outer_context) ... ok\ntest_cancel_keeps_other_blocker_and_context (test_state_budget.StateBudgetTests.test_cancel_keeps_other_blocker_and_context) ... ok\ntest_cancel_preserves_live_media_record (test_state_budget.StateBudgetTests.test_cancel_preserves_live_media_record) ... ok\ntest_cancel_refuses_unknown_scope_and_nested_return (test_state_budget.StateBudgetTests.test_cancel_refuses_unknown_scope_and_nested_return) ... ok\ntest_cli_check_and_derive_are_read_only (test_state_budget.StateBudgetTests.test_cli_check_and_derive_are_read_only) ... ok\ntest_commit_allows_cancellation_and_explicit_step_transition (test_state_budget.StateBudgetTests.test_commit_allows_cancellation_and_explicit_step_transition) ... ok\ntest_commit_cannot_drop_old_step_version (test_state_budget.StateBudgetTests.test_commit_cannot_drop_old_step_version) ... ok\ntest_commit_cleanup_failure_reports_committed (test_state_budget.StateBudgetTests.test_commit_cleanup_failure_reports_committed) ... ok\ntest_commit_failure_keeps_primary_error_and_cleanup_warning (test_state_budget.StateBudgetTests.test_commit_failure_keeps_primary_error_and_cleanup_warning) ... ok\ntest_commit_fsync_failure_keeps_previous_bytes (test_state_budget.StateBudgetTests.test_commit_fsync_failure_keeps_previous_bytes) ... ok\ntest_commit_lock_and_invalid_candidate_keep_old_bytes (test_state_budget.StateBudgetTests.test_commit_lock_and_invalid_candidate_keep_old_bytes) ... ok\ntest_commit_replace_failure_keeps_previous_bytes (test_state_budget.StateBudgetTests.test_commit_replace_failure_keeps_previous_bytes) ... ok\ntest_commit_retains_request_and_step_history (test_state_budget.StateBudgetTests.test_commit_retains_request_and_step_history) ... ok\ntest_commit_success_and_stale_sequence (test_state_budget.StateBudgetTests.test_commit_success_and_stale_sequence) ... ok\ntest_confirmed_settings_gate (test_state_budget.StateBudgetTests.test_confirmed_settings_gate) ... ok\ntest_cross_episode_same_scene_is_not_reused (test_state_budget.StateBudgetTests.test_cross_episode_same_scene_is_not_reused) ... ok\ntest_duplicate_coverage_is_rejected (test_state_budget.StateBudgetTests.test_duplicate_coverage_is_rejected) ... ok\ntest_gap_overlap_and_noncanonical_end_rejected (test_state_budget.StateBudgetTests.test_gap_overlap_and_noncanonical_end_rejected) ... ok\ntest_json_duplicate_nonfinite_and_wrong_types (test_state_budget.StateBudgetTests.test_json_duplicate_nonfinite_and_wrong_types) ... ok\ntest_missing_delivery_evidence_is_rejected (test_state_budget.StateBudgetTests.test_missing_delivery_evidence_is_rejected) ... ok\ntest_missing_text_or_budget_evidence_is_rejected (test_state_budget.StateBudgetTests.test_missing_text_or_budget_evidence_is_rejected) ... ok\ntest_old_schema_and_unknown_fields_rejected (test_state_budget.StateBudgetTests.test_old_schema_and_unknown_fields_rejected) ... ok\ntest_partial_chain_two_deliveries_and_disk_resume (test_state_budget.StateBudgetTests.test_partial_chain_two_deliveries_and_disk_resume) ... ok\ntest_plan_does_not_count_as_delivery (test_state_budget.StateBudgetTests.test_plan_does_not_count_as_delivery) ... ok\ntest_repair_middle_gap_absorbs_valid_suffix (test_state_budget.StateBudgetTests.test_repair_middle_gap_absorbs_valid_suffix) ... ok\ntest_text_evidence_requires_reference_text (test_state_budget.StateBudgetTests.test_text_evidence_requires_reference_text) ... ok\ntest_timestamp_is_not_source_anchor (test_state_budget.StateBudgetTests.test_timestamp_is_not_source_anchor) ... ok\ntest_unknown_source_mapping_refused (test_state_budget.StateBudgetTests.test_unknown_source_mapping_refused) ... ok\n\n----------------------------------------------------------------------\nRan 33 tests in 0.322s\n\nOK\n"
+  }
+}

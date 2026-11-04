@@ -1,0 +1,11 @@
+{
+  "initial": {"last_completed_formal":0,"script_cursor":{"source_version":"SRC-1","chain_id":"EP01-SC01-C01","anchor_id":"START"},"next_chain_unstarted":"EP01-SC01-C01"},
+  "after_first": {"last_completed_formal":1,"script_cursor":{"source_version":"SRC-1","chain_id":"EP01-SC01-C01","anchor_id":"A01"},"next_chain_unstarted":"EP01-SC01-C01"},
+  "after_second": {"last_completed_formal":2,"script_cursor":{"source_version":"SRC-1","chain_id":"EP01-SC01-C02","anchor_id":"START"},"next_chain_unstarted":"EP01-SC01-C02"},
+  "after_third": {"last_completed_formal":3,"script_cursor":"END","next_chain_unstarted":"END"},
+  "middle_gap": {"last_completed_formal":1,"frontier":"FORMAL_2"},
+  "repaired_gap": {"last_completed_formal":3,"script_cursor":"END","end_state_formal_id":"FORMAL_3"},
+  "cancel_complete": {"phase":"COMPLETE","next_required":"COMPLETE","awaiting_continue":false},
+  "offset_parallel_seconds":5.5,
+  "coverage_scope":"Synthetic mechanical fixtures only. H/F/M are not tested."
+}

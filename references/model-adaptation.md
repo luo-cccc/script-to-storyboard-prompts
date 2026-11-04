@@ -14,9 +14,9 @@
 
 内容核对：从原剧本版本和speech_id逐句核对母稿与适配稿的原台词，核对每个必要事件、镜头边界、声音职责、时长和首尾。不能仅与上游摘要比较，不能用关键词命中或近似覆盖率代替逐字完整性。目标平台长度或能力无法承载时说明具体缺失；不能删对白、改旁白、强制压速、变更确认画幅、合并／拆分剧情边界或改结果来伪装兼容。自然语言切镜要求不等于模型保证精确执行，效果仍由实际媒体检查。
 
-阻断范围：模型名称仅作为背景、且本轮目标为通用母稿时，未知能力或缺图只阻断对应适配／实际提交，母稿仍可检查和交付。用户要求“本模型可直接提交”的成品、或已把特定素材设为当前输出必要依据时，必需能力未知、输入缺失或硬限制冲突使该目标保持IN_PROGRESS：记录blocking_items.step_id与缺口，将原phase、唯一续作目标及本轮未完成事项保存在edit_context（返修）或return_to（补适配／材料），当前next_required=WAIT_USER，不宣称完成或推进新段；已有正确母稿保留。只有“实测表现尚未验证”而能力及输入已具备时，不阻断文字适配交付，但媒体观察保持NOT_RUN。后补适配遇到阻断不撤销先前有效文字覆盖，也不新增覆盖；补齐后先闭合该未完成事项，再恢复保存的续作目标并停止。
+阻断范围：模型名称仅作为背景、且本轮目标为通用母稿时，未知能力或缺图只阻断对应适配／实际提交，母稿仍可检查和交付。用户要求“本模型可直接提交”的成品、或已把特定素材设为当前输出必要依据时，必需能力未知、输入缺失或硬限制冲突使该目标保持IN_PROGRESS：给独立适配事项分配唯一request_id，记录blocking_items的request_id、step_id、所属phase及具体阻断范围；原phase、唯一续作目标、等待标志和集场保存在edit_context（返修）或return_to（补适配／材料）。当前next_required=WAIT_USER，phase按阻断所属步骤设置，COMPLETE后补正式段适配时为FORMAL_RUNNING；未完成返修仍为EDIT_LOCK，不宣称完成或推进新段。已有正确母稿保留。只有“实测表现尚未验证”而能力及输入已具备时，不阻断文字适配交付，但媒体观察保持NOT_RUN。后补适配遇到阻断不撤销先前有效文字覆盖，也不新增覆盖；补齐后闭合该事项，只清除其已解决阻断，再核对剩余事项并恢复保存目标后停止。用户明确取消时执行[取消与返回](state-and-revision.md#s7-5)，不以补齐规则代替取消。
 
-版本与交付：prompt_version指母稿版本；各适配稿保存adapter_version、base_prompt_version、model_profile_ref、input_refs、parameter_map、adaptation_map、text_status、input_status、submission_ref和交付位置。text_status使用DRAFT／CHECKED／BLOCKED／INVALID；input_status使用NOT_REQUIRED／PENDING／AVAILABLE／UNKNOWN，输入可用仍不等于已提交。未指定模型不建适配记录。母稿、适配稿和必要参数分开标明复制范围，管理信息放在提示词之外；实际上传、执行、任务ID和结果只有在真实发生时记录。任何派生稿错误先修派生稿；正确母稿和未受影响预算继续有效。
+版本与交付：prompt_version指母稿版本；prompt_versions中各母稿记录的adapters保存request_id、adapter_version、base_prompt_version、model_profile_ref、input_refs、parameter_map、adaptation_map、text_status、input_status、lifecycle、submission_ref和交付位置。text_status使用DRAFT／CHECKED／BLOCKED／INVALID；input_status使用NOT_REQUIRED／PENDING／AVAILABLE／UNKNOWN，输入可用仍不等于已提交。lifecycle使用ACTIVE／CLOSED／CANCELLED：请求进行中为ACTIVE，要求的文字交付及检查完成后为CLOSED，明确取消为CANCELLED并保存decision_ref；生命周期与质量状态分开，取消不改成CHECKED。重开取消事项使用新request_id并关联原请求；没有新请求则不反复追加取消记录。未指定模型不建适配记录。母稿、适配稿和必要参数分开标明复制范围，管理信息放在提示词之外；实际上传、执行、任务ID和结果只有在真实发生时记录。任何派生稿错误先修派生稿；正确母稿和未受影响预算继续有效。
 
 <a id="optional-strategies"></a>
 ## 交付与适配层的可选策略

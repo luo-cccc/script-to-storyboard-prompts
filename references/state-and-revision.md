@@ -18,9 +18,9 @@ next_required是唯一可推进的目标，不能写多个候选。每轮开始�
 <a id="s7-2"></a>
 ## 7.2 持久保存与正文分离
 
-状态必须可核验、可恢复，不能只存在于模型隐藏记忆。可靠项目文件能力下，先按用户指定位置或已明确的当前项目定位项目根目录，核对project_id、state_ref与source_script_ref的归属，再复用当前项目目录：保存一份完整run-state.txt、一份当前场次预算与分段记录、原剧本及各已交付Prompt有效版本；已有文件继续沿用，不另建重复报告。保存或移交恢复材料时，确保本技能包的[技能入口及读取路由](../SKILL.md)、本轮适用参考文件与上述项目数据一并可读取。技能目录保存规则和模板，项目根目录保存材料与当前权威状态；运行数据文件不属于技能参考库。已有项目沿用实际文件位置，不强制搬迁，不能把技能目录或规范文件所在位置当成剧本项目目录。规则链接按所在文件解析，项目材料路径按已定位的项目根目录或既有可定位引用解析。每个项目只维护一份当前权威状态；历史快照可以归档，但不得与当前状态混用。
+状态必须可核验、可恢复，不能只存在于模型隐藏记忆。可靠项目文件能力下，先按用户指定位置或已明确的当前项目定位项目根目录，核对project_id、state_ref与source_script_ref的归属，再复用当前项目目录：保存一份当前权威状态、当前场次预算与分段记录、原剧本及各已交付Prompt有效版本。新文件项目优先使用标准JSON的run-state.json及[机械校验](validation.md)，沿用75个顶层字段；已有run-state.txt可继续使用，迁移时先核对实际内容，不把自由文本交给程序猜解析。两种格式只选一份作为当前权威状态，另一份只能是标明版本的展示或历史快照。保存或移交恢复材料时，确保本技能包的[技能入口及读取路由](../SKILL.md)、本轮适用参考文件与上述项目数据一并可读取。技能目录保存规则和模板，项目根目录保存材料与当前权威状态；运行数据文件不属于技能参考库。已有项目沿用实际文件位置，不强制搬迁，不能把技能目录或规范文件所在位置当成剧本项目目录。规则链接按所在文件解析，项目材料路径按已定位的项目根目录或既有可定位引用解析。历史快照可以归档，但不得与当前状态混用。
 
-保存时使用同一state_seq／transaction_id关联状态、预算、正文和覆盖版本；临时写入、读回关键字段核验后提交，避免半写状态。单文件替换可用原子方式；多个文件仍须核对版本匹配。失败则保留上一个有效状态，记录未提交结果，转会话交付完整必要状态，不声称保存成功或自动推进。
+保存时使用同一state_seq／transaction_id关联状态、预算、正文和覆盖版本；先校验候选快照，再核对预期旧state_seq、临时写入并读回关键字段，最后原子替换当前状态。并发写入必须另有排他锁，单文件原子替换不等于多文件事务；正文和预算先保存为不可混淆的版本，核对可访问后再提交状态引用。替换前失败则保留上一个有效状态和未提交候选，转会话交付完整必要状态，不声称保存成功或自动推进。已替换但后续锁清理失败时，按committed及state_seq如实报告已保存并附清理告警，核对当前文件后处理遗留锁，不重复提交。程序的机械检查不能替代正文语义与交付证据核验。
 
 FILE模式的母稿正文文件只含[5.1](video-template.md#s5-1)内容；存在适配稿时另存干净提交文本及必要参数／输入说明，版本映射、能力证据、预算和媒体观察仍保存在运行记录中。给出各份用途与最短状态回执，避免把母稿与适配稿连续当作一份提交。CHAT模式分别标明可复制范围，在其后另起【运行状态 不属于视频提示词】，提供完整必要状态及当前覆盖、预算、首尾记录。纯正文展示不等于删除状态。
 
@@ -36,8 +36,8 @@ FILE短回执至少包括：本轮目标与完成状态、state_seq、episode_id
 ```text
 【RUN_STATE 不属于视频Prompt】
 state_seq=[每次状态实际更新递增]
-state_version=1.8
-workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V3
+state_version=1.9
+workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4
 transaction_id=[本次关联正文、预算与状态的版本标识]
 phase=[PROJECT_SETUP／ASSET_RUNNING／EPISODE_PLANNING／SCENE_PREP／FORMAL_RUNNING／EDIT_LOCK／COMPLETE]
 project_id=[项目唯一名称或ID]
@@ -73,15 +73,15 @@ prep_batch=[当前单元分批号]
 prep_status=[UNSET／IN_PROGRESS／DONE]
 last_completed_formal=[从起点连续有效且已交付的最大正式段号，初始化0]
 last_output=[最近实际交付目标或STATE_RECOVERY／REVISION_FORMAL_n／REISSUE_FORMAL_n]
-next_required=[PROJECT_BASELINE／具体资产ID／CHARACTER_ASSET_REVIEW／SCENE_PROP_ASSET_REVIEW／EPxx_PLAN／SCxx_ANALYSIS／SCxx_BUDGET_SEGMENT／FORMAL_n／WAIT_USER／COMPLETE中的唯一实际目标]
-script_cursor=[下一条未消费链ID及其START锚点，全部结束为END]
-next_chain_unstarted=[与script_cursor一致的下一链或END]
-chain_registry=[稳定链ID、源版本、原文起止锚点、所属集场；已经消费的ID不改号]
+next_required=[PROJECT_BASELINE／具体资产ID／CHARACTER_ASSET_REVIEW／SCENE_PROP_ASSET_REVIEW／EPxx_PLAN／EPxx-SCxx_ANALYSIS／EPxx-SCxx_BUDGET_SEGMENT／FORMAL_n／WAIT_USER／COMPLETE中的唯一实际目标；场次目标带集号，旧简称只在所属集唯一时归一化]
+script_cursor=[END或{source_version;chain_id;anchor_id}，指向下一未覆盖源内锚点／动作相位；链内可用稳定A01等锚点，不只允许START，见7.4]
+next_chain_unstarted=[兼容字段名；派生为script_cursor.chain_id或END，含已开始但尚未完成的链，不再表示该链必须完全未开始]
+chain_registry=[按原文顺序的稳定链id、source_version、episode_id、scene_id及有序anchors；每个锚点含id、source_anchor、action_phase，至少START和END；已使用的ID不改号]
 coverage_ledger=[各正式段的完整覆盖记录，格式见[7.4](state-and-revision.md#s7-4)]
 prompt_versions=[各正式段母稿与可选模型提交适配稿的版本、可定位正文、有效性、交付证据及关联预算／能力核验版本；适配稿与母稿共用formal_id，不重复覆盖]
 segment_max_s=[[第一步](../SKILL.md)用户确认的单段时长上限及decision_ref，未确认UNSET；与production_settings对应值一致]
 segment_delivery=ONE_AT_A_TIME
-segment_plan=[每个计划段的链ID、原文起止、预算、首尾状态、计划版本与依据]
+segment_plan=[每个计划段的formal_id、链ID、原文起止、start_cursor／end_cursor半开范围、预算、首尾状态、计划版本与依据；已开始或已交付的段保留对应计划映射]
 budget_status=[UNSET／DRAFT／CHECKED／FROZEN／INVALID]
 budget_ref=[当前完整预算与语速卡的实际位置和版本]
 plan_ref=[当前场次分析、预算、分段记录的实际位置与版本；不指向已删除的分镜设计表]
@@ -99,12 +99,12 @@ execution_mode=REVIEW
 step_policy=STRICT
 performance_mode=[沿用用户NORMAL／PRECISE设置，无要求时NORMAL]
 awaiting_continue=[true／false]
-step_ledger=[每个已开始单元的status=IN_PROGRESS／DONE／REUSED／INVALID，交付位置与版本、决定依据；checks分别记录TEXT、INPUT、CAPABILITY、MEDIA的实际结论、范围与证据，不以一个PASS代替四类检查。按[7.9](state-and-revision.md#s7-9)在所属单元内保存media_observations和实际generation记录；未执行媒体检查记NOT_RUN，未开始单元不得预填DONE]
-blocking_items=[NONE或原未完成step_id、具体缺口及阻断范围；依赖范围按[5.2](model-adaptation.md#s5-2)区分通用母稿、特定提交稿或媒体任务]
+step_ledger=[每个已开始单元的status=IN_PROGRESS／DONE／REUSED／INVALID／CANCELLED，交付位置与版本、决定依据；CANCELLED只关闭明确撤销的可选事项，不满足必做前驱；checks分别记录TEXT、INPUT、CAPABILITY、MEDIA的实际结论、范围与证据，不以一个PASS代替四类检查。按[7.9](state-and-revision.md#s7-9)在所属单元内保存media_observations和实际generation记录；未执行媒体检查记NOT_RUN，未开始单元不得预填DONE]
+blocking_items=[NONE或数组；每项记录step_id、phase、具体缺口、阻断范围及关联request_id（有独立请求时）；只有阻断当前目标或其实际依赖的事项才使本轮WAIT_USER，其他事项保留但不扩大阻断]
 edit_lock=[NONE或当前返修目标ID]
 edit_context=[返修前phase、next_required、last_completed_formal、script_cursor、旧版本、修改范围；源于媒体反馈时附观察记录、时码证据、归责判断及本次主要改动，检查后恢复原目标]
 invalidated_from=[NONE或第一个失效目标]
-return_to=[增量资产、补材料、预览确认等待或恢复后返回的原phase和唯一目标；无则NONE]
+return_to=[增量资产、补材料、预览确认等待或恢复后的原phase、next_required、awaiting_continue、episode_id、scene_id；独立补适配另带request_id；已有返回上下文不得静默覆盖，不支持嵌套的工具应拒绝并保留原记录；无则NONE]
 delivery_mode=[PROMPT_CLEAN，预算与状态另存／另区；用户主动展开时记录AUDIT]
 delivery_channel=[FILE／CHAT]
 state_storage=[FILE／CONVERSATION]
@@ -115,19 +115,25 @@ recovery_evidence=[恢复或迁移依据；可包括真实任务ID、任务审�
 <a id="s7-4"></a>
 ## 7.4 覆盖账本与链ID
 
-稳定编号格式EP01-SC01-C01，旧项目已有SC01-C01等可无损沿用并补集号归属，不为美观重号。链对应完整因果事件，不等同于镜头。原文有改版时建立新源版本和映射，已交付历史保留原对应关系。
+稳定编号格式EP01-SC01-C01，旧项目已有SC01-C01等可无损沿用并补集号归属，不为美观重号。链对应完整因果事件，不等同于镜头。原文有改版时建立新源版本和明确锚点映射，已交付历史保留原对应关系；无法无损映射的区间先恢复或返修，不凭相似文本拼接覆盖。
+
+每链登记按源内顺序排列的anchors：START为该链开始前，END为该链完成后；确需有据跨段时补稳定A01等链内边界，保存原文定位和“哪项接触已完成、哪项动作尚未开始”的action_phase。锚点表示事件位置，不能用生成视频第10秒替代源内依据。已确认的边界被使用后不随镜头重新编号；新增锚点不改变已有锚点身份。
+
+覆盖统一为半开区间[start_cursor,end_cursor)，end_cursor是下一未覆盖位置。同链END与下一链START是同一边界，保存时归一化为下一链START；末链END归一化为全局END。C01 START→C01 A01及C01 A01→C02 START可分别作为两个正式段，C01只在后段交付后完成。跨场或跨集比较使用完整episode_id、scene_id和chain_id，不能仅比较SC01。
 
 每个正式段完整记录：
 
 ```text
-F_n={formal_id;episode_id;scene_id;segment_id;prompt_version;budget_version;source_script_version;chains;start_anchor;end_anchor;start_state;end_state;delivery_ref;checks;status=DONE／INVALID}。
+F_n={formal_id;episode_id;scene_id;segment_id;prompt_version;budget_version;source_script_version;chains;start_cursor;end_cursor;start_anchor;end_anchor;start_state;end_state;delivery_ref;checks;status=DONE／INVALID}。
 ```
 
-计划覆盖只存在segment_plan；正式交付成功后才进入有效coverage_ledger，不能把计划段记为DONE。覆盖起点必须等于当前script_cursor，和有效前段无重叠、无缺口，原台词与必要事件全部有去向。
+原文start_anchor／end_anchor保留人可读定位，start_cursor／end_cursor用于精确区间比较。每个formal_id在当前coverage_ledger中至多一条记录；新交付只能插入尚不存在的段，返修替换该段当前版本，旧版正文和覆盖快照另存历史。重复提交同段同版必须拒绝或无变化返回，不能追加第二份覆盖。prompt_versions可保留历史多版本，当前DONE覆盖必须对应有效母稿、预算版本、可定位交付和实际检查证据。
+
+计划覆盖只存在segment_plan；正式交付成功后才进入有效coverage_ledger，不能把计划段记为DONE。覆盖起点必须等于当前script_cursor，和有效前段无重叠、无缺口，原台词与必要事件全部有去向。链内承接时保存唯一话轮片段、动作相位和首尾依据，不能因复用同一chain_id误判重播，也不能据此跳过区间重复检查。
 
 段内衔接不另加链，不再消费一次原文。纯镜头变化不改变覆盖。历史重发读取该段自己的固定范围和历史首尾，不按当前剩余剧情重新生成。
 
-last_completed_formal表示连续有效前缀，不取历史最大标题编号。后续已有文件但被标INVALID时不算已完成，也不能作为续写开场依据。
+last_completed_formal表示从FORMAL_1起连续有效的前缀，不取历史最大标题编号。每次提交、返修、失效或恢复后都从当前覆盖重算：按段号检查DONE、版本与交付证据、区间首尾一致及实际依赖有效；遇到首个缺项或INVALID即停止。修复中间空缺后，继续吸收仍有效且相接的后续段，不重新交付或消费它们。已经存在的有效后缀仍保留；未接入前缀前不能作为续作起点。推导script_cursor、next_chain_unstarted和末态时取重算后的前缀终点，不取最近修改的段尾。
 
 <a id="s7-5"></a>
 ## 7.5 状态转换与继续
@@ -140,9 +146,9 @@ last_completed_formal表示连续有效前缀，不取历史最大标题编号�
 
 [第三步](../SKILL.md)场景道具：先SCENE队列再PROP队列，每轮一个实际单元。场景全部完成后scene_asset_status=DONE、asset_substage=PROP；道具全部完成后prop_asset_status=DONE、scene_prop_asset_status=DONE。没有某类需求时保留实际范围核对证据，不伪造资产。全部复用或无新增时在本步交付SCENE_PROP_ASSET_REVIEW。只有人物与场景道具两步均完成才asset_status=DONE、asset_substage=COMPLETE、phase=EPISODE_PLANNING、next_required=当前EPxx_PLAN，等待继续。
 
-按集规划：记录场序、链与造型需求。缺增量资产则保存return_to（原phase、目标及资产子阶段），设置phase=ASSET_RUNNING并进入实际缺项所属CHARACTER／SCENE／PROP队列；人物新身份需完整母图加四视图，既有身份只缺新造型则补对应完整四视图。补完恢复原未完成目标和有效其他队列状态，不重新混排初始第二、第三步，不重做无关母图。无缺项则phase=SCENE_PREP、next_required=该集第一未完成场次SCxx_ANALYSIS。
+按集规划：记录场序、链与造型需求。缺增量资产则保存return_to（原phase、目标及资产子阶段），设置phase=ASSET_RUNNING并进入实际缺项所属CHARACTER／SCENE／PROP队列；人物新身份需完整母图加四视图，既有身份只缺新造型则补对应完整四视图。补完恢复原未完成目标和有效其他队列状态，不重新混排初始第二、第三步，不重做无关母图。无缺项则phase=SCENE_PREP、next_required=该集第一未完成场次EPxx-SCxx_ANALYSIS。
 
-场次分析完成：scene_wide_status=ESTABLISHED、prep_step=ANALYSIS_DONE，next_required=同场SCxx_BUDGET_SEGMENT。
+场次分析完成：scene_wide_status=ESTABLISHED、prep_step=ANALYSIS_DONE，next_required=同场EPxx-SCxx_BUDGET_SEGMENT。
 
 预算分段完成：预算、分段和首尾记录均有可定位证据，且无阻断本轮预算／分段目标的未决事项，prep_step=DONE、prep_status=DONE、phase=FORMAL_RUNNING、next_required=FORMAL_(last_completed_formal+1)。平台适配或媒体任务的独立缺口按[5.2](model-adaptation.md#s5-2)、[7.9](state-and-revision.md#s7-9)记录，不自动阻断已满足条件的文字预算。
 
@@ -150,13 +156,17 @@ last_completed_formal表示连续有效前缀，不取历史最大标题编号�
 
 新正式段交付前核验：target=next_required；n=last_completed_formal+1；覆盖起点=script_cursor；项目分析、三项制作条件确认、人物资产、场景道具资产、本集规划、本场分析与预算前驱有DONE／REUSED证据；无未完成返修锁，且blocking_items中没有阻断本轮交付及其实际前驱的缺口；有效段界、当前目标所需素材和文字起态可恢复。只检查本轮依赖范围：通用母稿不以已出图、已上传或媒体PASS为前驱；指定模型提交稿的必要输入和能力按[5.2](model-adaptation.md#s5-2)核验，不越过其真实阻断。
 
-正文、预算、衔接检查和交付完成后提交F_n：追加有效覆盖、登记正文版本、last_completed_formal=n、last_output=FORMAL_n、script_cursor移到覆盖终点之后的下一链、next_chain_unstarted同步、更新人物／道具／环境／持续效果与末态，并按实际呈现更新viewing_state；后台剧本事实和计划镜头不记作观众已知。
+正文、预算、衔接检查和交付完成后提交F_n：先按[7.4](state-and-revision.md#s7-4)插入新覆盖或替换返修版本，登记正文版本，再重算连续有效前缀。last_completed_formal取重算结果，script_cursor取该前缀的下一未覆盖锚点（可在同一链内），next_chain_unstarted同步派生；人物／道具／环境／持续效果、末态及viewing_state均以该前缀末段的有效正文为依据。last_output记录本轮实际交付目标，新段为FORMAL_n、返修为REVISION_FORMAL_n，不因吸收后缀虚报交付了后缀。后台剧本事实和未交付计划不记作观众已知。
 
-随后只设置下一目标并同步phase：同场未完→phase=FORMAL_RUNNING、next_required=FORMAL_n+1；同集下一场→phase=SCENE_PREP、next_required=其SCxx_ANALYSIS并重置当前场prep字段；下一集→phase=EPISODE_PLANNING、next_required=其EPxx_PLAN；全部结束→phase=COMPLETE、next_required=COMPLETE、script_cursor=END、next_chain_unstarted=END、awaiting_continue=false。未全部结束则awaiting_continue=true。
+随后从重算后的前缀、实际集场和有效前驱只设置一个下一目标并同步phase：尚有失效分析或预算时先指最早受影响前置；同场未完且前置有效→phase=FORMAL_RUNNING、next_required=FORMAL_(last_completed_formal+1)；同集下一场→phase=SCENE_PREP、next_required=其EPxx-SCxx_ANALYSIS并重置当前场prep字段；下一集→phase=EPISODE_PLANNING、next_required=其EPxx_PLAN。已有效的集规划或场前置按证据复用，不因修洞重复交付。全部已知制作范围完成且无阻断当前完成条件的事项时，phase=COMPLETE、next_required=COMPLETE、script_cursor=END、next_chain_unstarted=END、awaiting_continue=false；未全部结束则awaiting_continue=true。返修锁和实际阻断优先，不能用END游标绕过未闭合事项。
 
 用户说“继续”：读最新状态及前驱证据→检查返修锁与阻断→锁定本轮唯一target→awaiting_continue=false→完成当前单元或记录真实缺口→保存与交付更新状态→停止，不在本轮循环执行新next_required。
 
-WAIT_USER时补材料或决定仅闭合原步骤。仍缺内容保持IN_PROGRESS；齐备后清空阻断并设置下一目标和等待状态。“确认并继续”不自动同轮追加下一个生产单元。已确认同项不再次请求确认。
+WAIT_USER时补材料或决定仅闭合原步骤。仍缺内容保持IN_PROGRESS；齐备后只清除该事项已解决的阻断，重新核对其他实际依赖，恢复保存目标或设置下一目标和等待状态。“确认并继续”不自动同轮追加下一个生产单元。已确认同项不再次请求确认。
+
+用户明确取消独立补适配时，按request_id定位该请求及其return_to；在prompt_versions所属adapters记录lifecycle=CANCELLED、decision_ref和取消时的state_seq，保留原text_status、input_status及历史正文，不标CHECKED。若有独立step_ledger事项，只将该事项标CANCELLED，不取消所属正式段；只清理同request_id的blocking_items，保留其他阻断、返修锁和覆盖。恢复原phase、next_required、awaiting_continue及集场后，再按剩余阻断与锁核验。优先级为：未完成返修时phase=EDIT_LOCK；仍有阻断该返回目标的事项时next_required=WAIT_USER、awaiting_continue=false，phase在无返修锁时取阻断所属步骤。只关闭已取消请求的请求级返回关联；仍有阻断或返修锁时保留后续恢复所需的外层return_to／edit_context，不清空它们。仅无剩余阻断和锁时，才清空已用return_to并恢复原目标；原目标COMPLETE且条件仍成立时恢复COMPLETE。记录取消后停止，不同轮追加生产。重复取消不得重复写入或增加覆盖；需要再次适配时建立新的request_id。找不到唯一请求、返回依据不足或遇到未支持的嵌套上下文时先保存缺口，不猜返回目标。
+
+取消仅关闭该文字适配请求，不自动取消已发起的供应商任务或撤销必做前驱。若当前首次正式交付明确要求适配成品，取消是否同时撤销该交付要求须有用户依据；要求未撤销则保持其缺口，不能以取消冒充本段已完成。
 
 指定未来目标晚于next_required属于跳段，只说明当前实际缺口并停在正确目标；指定已存在的历史段按重发／返修分支，不用新段n+1闸门拒绝历史操作。
 
@@ -165,13 +175,13 @@ WAIT_USER时补材料或决定仅闭合原步骤。仍缺内容保持IN_PROGRESS
 
 用户要求修改、调整、删增动作／镜头／台词／声音／约束或明确否定当前段，即进入EDIT_LOCK。记录edit_context，冻结原游标、段号和下一目标；本轮只处理指定返修，即使同时说继续也不追加新段。
 
-局部修改不改变覆盖及段尾：输出目标完整修订正文，其他未受影响内容逐字或等义保留，不以“其余不变”代替整段；重算受影响时长与检查，更新本段版本。覆盖、script_cursor、last_completed_formal和原next_required保持。修订交付成功后 `last_output=REVISION_FORMAL_n`；非正式段返修保留原 last_output 并在 edit_context 记录，不虚报新段。完成后解锁并恢复原phase和下一目标，等待继续。
+局部修改不改变覆盖及段尾：输出目标完整修订正文，其他未受影响内容逐字或等义保留，不以“其余不变”代替整段；重算受影响时长与检查，更新本段版本。返修锁期间冻结原覆盖、script_cursor、last_completed_formal和下一目标；修订成功后按[7.4](state-and-revision.md#s7-4)重算连续有效前缀、游标、末态和下一目标。只有没有中间失效空缺、无需吸收后缀且依赖未变时，重算结果才与返修前一致。修订交付成功后 `last_output=REVISION_FORMAL_n`；非正式段返修保留原 last_output 并在 edit_context 记录，不虚报新段。完成后解锁，按重算结果恢复phase和下一目标，等待继续。
 
 修改段尾状态、原文覆盖或已确认段界：先保留历史版本，从首个实际受影响边界标记后续正文、预算、`transition_plan`／`transition_review`与相关step_ledger为INVALID。无关资产与前置继续有效，不因局部返修重启项目。
 
-回退到最后连续有效正式段，script_cursor回到其后的第一未覆盖链。被修目标如已完整修订、检查并交付且仍紧接有效前缀，可以作为新有效版本提交；受影响后续仍保持INVALID，不自动重发。目标本身未完成时不得算有效前缀。
+按[7.4](state-and-revision.md#s7-4)重算最后连续有效正式段，script_cursor回到其后的第一未覆盖锚点，可在链内。被修目标如已完整修订、检查并交付，可替换该formal_id的当前覆盖；随后继续扫描并吸收仍有效、范围相接且依赖未变的后续段。受影响后续仍保持INVALID，不自动重发；目标本身未完成时不得算有效前缀。例如F1 DONE、F2 INVALID、F3 DONE，修复F2后若F3仍有效，前缀应恢复为3，下一目标不得再次指向F3。
 
-覆盖边界变化需重排分段时，next_required指向最早受影响的SCxx_BUDGET_SEGMENT；事实或空间分析也失效时先回对应SCxx_ANALYSIS。上游仍有效且仅需重做后续正文时指向第一个失效FORMAL_n。这只是设置目标，不在本轮执行它。
+覆盖边界变化需重排分段时，next_required指向最早受影响的EPxx-SCxx_BUDGET_SEGMENT；事实或空间分析也失效时先回对应EPxx-SCxx_ANALYSIS。上游仍有效且仅需重做后续正文时指向第一个失效FORMAL_n。这只是设置目标，不在本轮执行它。
 
 修改取景、切点或声音即使未改人物物理末态，也要核对是否改变观众实际看见的证据与揭示时机；若后续依赖该信息，按实际依赖更新viewing_state并使受影响后续失效，不让漏看或提前看见的信息仍冒充原版本。
 
@@ -201,7 +211,11 @@ WAIT_USER时补材料或决定仅闭合原步骤。仍缺内容保持IN_PROGRESS
 <a id="s7-8"></a>
 ## 7.8 旧版迁移与一致性闸门
 
-本版v1.8加入[5.2](model-adaptation.md#s5-2)模型适配、[第四部分](asset-templates.md)素材职责与可用状态、同句同语言同表演的实测依据、空间与声音衔接，以及[7.9](state-and-revision.md#s7-9)实际媒体观察和任务恢复。沿用[七步制作流程](../SKILL.md)与原有RUN_STATE顶层字段：能力资料放project_decisions，素材职责放所属资产／visual_reference，派生关系放prompt_versions，实测放语速卡，媒体观察与真实任务放所属step_ledger，返修与恢复仍用edit_context和recovery_evidence。workflow_schema保持SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V3，state_version更新为1.8。
+本版v1.9保留75个顶层字段，将workflow_schema更新为SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4：游标改为源版本＋链＋锚点，覆盖采用半开区间，next_chain_unstarted作为游标链ID的兼容投影；提交统一重算连续前缀；适配增加请求生命周期和明确取消分支；母稿时间统一为段时钟。新旧状态不能只改版本号混用。
+
+从v1.8迁移时，先备份旧快照，读取原文、覆盖和有效正文。只有证据确实位于整链边界时，旧“Cxx START”可映射到{source_version,chain_id,anchor_id:START}，旧全局END保持END；旧闭区间覆盖的结束事件映射到完成后的下一未覆盖锚点。链内进度必须从实际动作相位或已对齐话轮片段补出稳定锚点；不能由估计秒数反推。旧SCxx目标只在episode_id及前驱证据唯一时补成EPxx-SCxx。取消历史有明确用户依据才补CANCELLED，否则保留UNKNOWN缺口并核验。完成字段归一化和前缀／版本检查后记录recovery_evidence、state_version=1.9并停止，不新增覆盖；证据不足保留旧有效成果并请求最少材料。JSON校验入口不自动迁移旧自由文本，也不为迁移改写已交付提示词。
+
+历史v1.8加入[5.2](model-adaptation.md#s5-2)模型适配、[第四部分](asset-templates.md)素材职责与可用状态、同句同语言同表演的实测依据、空间与声音衔接，以及[7.9](state-and-revision.md#s7-9)实际媒体观察和任务恢复。能力资料放project_decisions，素材职责放所属资产／visual_reference，派生关系放prompt_versions，实测放语速卡，媒体观察与真实任务放所属step_ledger，返修与恢复仍用edit_context和recovery_evidence；该历史版本使用workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V3、state_version=1.8。
 
 旧项目的有效正文按其实际职责映射为母稿，不因升级改写、重发或撤销覆盖；旧稿缺必要事实时只处理实际依赖。模型未指定不建适配记录，未执行的媒体观察记NOT_RUN，历史媒体是否检查无法确认时记UNKNOWN，不把旧DONE迁成媒体PASS。只按实际来源补素材状态，缺历史生成记录不否定已经可读的图片。三项确认、人物首次成套、整场预算和连续有效前缀继续有效；新规则改变实际内容时按[7.6](state-and-revision.md#s7-6)局部返修，不重启项目。
 
@@ -223,7 +237,7 @@ v1.6更新影像风格与光影的写法及对应模板，沿用现有三项制�
 
 旧TRANSITION独立单元迁移为相应正式段首／尾的transition_plan，不增加段号和覆盖。原锁指向该衔接时映射到所属正文或尚未执行的边界记录，保留返修范围。CONTINUOUS迁为REVIEW／STRICT，未获新的明确执行规则修改不批量输出。
 
-每次提交核对：next_required唯一且phase与实际目标一致（项目确认PROJECT_SETUP、资产ASSET_RUNNING、集规划EPISODE_PLANNING、场次分析／预算SCENE_PREP、正式段FORMAL_RUNNING、全部完成COMPLETE；WAIT_USER按blocking_items所属步骤核对，未完成返修保持EDIT_LOCK，增量资产保留return_to）；新段号与有效前缀一致；script_cursor与next_chain_unstarted一致；预算、母稿和边界版本对应，适配稿指向有效母稿且映射无事实遗漏；三项制作条件确认有据且与正文一致；人物首次母图与四视图成套，[第二步](../SKILL.md)完成才进入[第三步](../SKILL.md)；有效覆盖无重无漏；所有DONE／REUSED有证据；INVALID不作起点；未完成返修不越过；素材职责、实际输入和能力依据有据，测量与媒体结论未超出证据范围；状态和交付记录真实可恢复。只检查本轮适用职责，未指定模型或未生成媒体不形成额外失败条件；失败时修实际缺口，不强行继续。
+每次提交核对：next_required唯一且phase与实际目标一致（项目确认PROJECT_SETUP、资产ASSET_RUNNING、集规划EPISODE_PLANNING、场次分析／预算SCENE_PREP、正式段FORMAL_RUNNING、全部完成COMPLETE；WAIT_USER按blocking_items所属步骤核对，未完成返修保持EDIT_LOCK，增量资产保留return_to）；新段号与有效前缀一致；script_cursor与next_chain_unstarted的链ID投影一致，源内锚点合法，当前覆盖每formal_id唯一且半开区间无重无漏，last_completed_formal等于重算的连续前缀；预算、母稿和边界版本对应，适配稿指向有效母稿且映射无事实遗漏；三项制作条件确认有据且与正文一致；人物首次母图与四视图成套，[第二步](../SKILL.md)完成才进入[第三步](../SKILL.md)；有效覆盖无重无漏；所有DONE／REUSED有证据；INVALID不作起点；未完成返修不越过；素材职责、实际输入和能力依据有据，测量与媒体结论未超出证据范围；状态和交付记录真实可恢复。只检查本轮适用职责，未指定模型或未生成媒体不形成额外失败条件；失败时修实际缺口，不强行继续。
 
 <a id="s7-9"></a>
 ## 7.9 已有媒体的观察、定点返修与任务恢复

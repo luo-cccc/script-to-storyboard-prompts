@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "recorded_at": "2026-11-04T06:44:28.058179+00:00",
+  "scope": "Byte comparison against the pre-implementation backup; only the explicitly listed preserved files.",
+  "files": [
+    {
+      "file": "specs/script-to-storyboard-prompts-v1.8.txt",
+      "before_sha256": "ed1d533c3019d7048a602887b523967d2312dd2cc6a23fe9ac8891bf91d5defe",
+      "after_sha256": "ed1d533c3019d7048a602887b523967d2312dd2cc6a23fe9ac8891bf91d5defe",
+      "unchanged": true
+    },
+    {
+      "file": "references/asset-templates.md",
+      "before_sha256": "f10a6809095dfeab1e4bfa19cb3d795da939e9fb48db8150a0170117c4cab918",
+      "after_sha256": "f10a6809095dfeab1e4bfa19cb3d795da939e9fb48db8150a0170117c4cab918",
+      "unchanged": true
+    },
+    {
+      "file": "references/shot-writing.md",
+      "before_sha256": "6d43feca8106318e9d50fb7808a68843cebb0b4efb9631a51870354196355435",
+      "after_sha256": "6d43feca8106318e9d50fb7808a68843cebb0b4efb9631a51870354196355435",
+      "unchanged": true
+    },
+    {
+      "file": "docs/分镜资源对比研究-2026-11-03.md",
+      "before_sha256": "35abc22e27341f03354ec00bce2a5258775ca54befe9fb3fdc9790baa96c2f94",
+      "after_sha256": "35abc22e27341f03354ec00bce2a5258775ca54befe9fb3fdc9790baa96c2f94",
+      "unchanged": true
+    },
+    {
+      "file": ".gitattributes",
+      "before_sha256": "919284496debbd08aee96d02a2c55cb4cfc121a8c13612f0640cf25f5c872716",
+      "after_sha256": "919284496debbd08aee96d02a2c55cb4cfc121a8c13612f0640cf25f5c872716",
+      "unchanged": true
+    }
+  ]
+}

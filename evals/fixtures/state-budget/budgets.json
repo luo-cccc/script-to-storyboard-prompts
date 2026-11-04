@@ -1,0 +1,5 @@
+[
+  {"formal_id":"FORMAL_1","prompt_version":"P1","budget_version":"B1","time_basis":"SEGMENT","duration_s":10,"target_max_s":15,"shots":[{"id":"S1","start_s":0,"end_s":10,"duration_s":10,"phases":[{"start_s":0,"end_s":10,"timing":{"seconds":10}}]}]},
+  {"formal_id":"FORMAL_2","prompt_version":"P2","budget_version":"B2","time_basis":"SEGMENT","duration_s":10,"target_max_s":15,"shots":[{"id":"S1","start_s":0,"end_s":6,"duration_s":6,"phases":[{"start_s":0,"end_s":6}]},{"id":"S2","start_s":6,"end_s":10,"duration_s":4,"phases":[{"start_s":6,"end_s":7},{"start_s":7,"end_s":8},{"start_s":8,"end_s":10}]}]},
+  {"formal_id":"FORMAL_3","prompt_version":"P3","budget_version":"B3","time_basis":"SEGMENT","duration_s":4,"target_max_s":15,"shots":[{"id":"S1","start_s":0,"end_s":4,"duration_s":4,"timing":{"sequence":[{"seconds":2},{"seconds":2}]}}]}
+]

@@ -675,9 +675,9 @@
 
 #### 8. 单点透视 One-point Perspective
 
-**效果**：所有平行线汇聚于画面中心一个消失点，创造强烈的纵深感和仪式感。库布里克的标志构图。
+**效果**：沿纵深方向的一组平行线汇聚于同一消失点，平行于画面的线保持平行；消失点位置按构图确定，不必位于画面中心。居中对称的单点透视可强化纵深感和仪式感，是库布里克常用的构图方式。
 
-**AI提示词**：`One-point Perspective, all parallel lines converge to central vanishing point, strong depth and ritual`
+**AI提示词**：`One-point Perspective, receding parallel lines converge to a single vanishing point, strong depth`
 
 **经典案例**：《2001太空漫游》太空站走廊单点透视；《闪灵》酒店走廊；《发条橙》多个单点透视场景。
 

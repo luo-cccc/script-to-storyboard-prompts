@@ -11,7 +11,7 @@ description: >
 
 # 剧本转分镜提示词
 
-技能包版本：0.2.0。规则基线与项目状态版本：1.8；`workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V3`。
+技能包版本：0.3.0。当前规则与项目状态版本：1.9；`workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4`。原始单文本v1.8保留为历史迁移基线。
 
 将中文剧本、剧情或动作笔记依次整理成项目分析、完整资产图片提示词、集场分析、预算分段及完整视频母稿。用户指定模型和模式后，按[模型提交适配](references/model-adaptation.md#s5-2)从同版母稿派生提交稿，核对真实输入与能力限制。
 
@@ -21,7 +21,7 @@ description: >
 
 1. 先识别本轮是正常推进、补适配、历史返修、普通重发、逐字复送、状态恢复、媒体检查或只读咨询。单独咨询摄影术语或维护技能时，只处理该请求，不建立或更新制作状态。只说“继续”时须有明确项目及已采用流程，不能因此切换其他流程。
 2. 文件模式下按用户指定位置或已明确项目定位项目根，核对 `project_id`、`state_ref`、`source_script_ref`。技能目录只存规则；桌面源规范的位置也不是制作项目根。已有项目有多候选或归属冲突时，只询问解除歧义所需的信息，不猜“最新项目”。
-3. 正常推进前读取当前权威状态、[状态核心原则](references/state-and-revision.md#s7-1)、[状态转换](references/state-and-revision.md#s7-5)和实际前驱交付证据，核对唯一 `next_required`、返修锁、当前依赖范围的阻断、连续有效覆盖、原文游标与版本，再锁定本轮目标。
+3. 正常推进前读取当前权威状态、[状态核心原则](references/state-and-revision.md#s7-1)、[状态转换](references/state-and-revision.md#s7-5)和实际前驱交付证据，核对唯一 `next_required`、返修锁、当前依赖范围的阻断、重算的连续有效覆盖、源内游标与版本，再锁定本轮目标。链内续作从已登记锚点承接；修复中间空缺后吸收仍有效的后续段，不重新消费它们。
 4. 新项目没有旧状态属正常情况。按[状态模板](references/state-and-revision.md#s7-3)初始化到已明确的项目位置；无法可靠存文件时采用[会话状态](references/state-and-revision.md#s7-2)。现有状态完整且证据一致可继续；需要重建缺失或冲突状态时，先按[恢复分支](references/state-and-revision.md#s7-7)恢复并停止，本轮不附新正式段。
 5. 历史返修、重发、逐字复送、恢复分别走对应分支，不能机械套用新段 n+1 的前驱条件。逐字复送保持生产状态完全不变；普通重发只允许对应重发记录，不推进覆盖。
 6. 按下表补读资料。已在当前上下文且未变化的内容可复用，不逐轮重读全部文件；缺少当前必要证据时指出具体缺项，不凭记忆声称完整执行。
@@ -36,8 +36,8 @@ description: >
 | 人物资产 | [素材职责与完整模板](references/asset-templates.md)、[风格写法](references/shot-writing.md#s3-8) | 人物档案、身高来源、造型状态及复用证据；首次母图与四视图同轮成套 |
 | 场景与道具 | [对应完整模板](references/asset-templates.md)、[风格与光照](references/shot-writing.md#s3-8) | 场景空间、真实光源、道具结构及状态；先场景后道具，逐项交付 |
 | EPxx_PLAN | 本入口第四步、[增量与返回](references/state-and-revision.md#s7-5)，有缺项时读资产模板 | 当前集原文、稳定事件链、资产队列和造型版本；保存 return_to，补齐后返回 |
-| SCxx_ANALYSIS | [观看任务、空间与连续性](references/shot-writing.md) | 当前场完整原文、人物空间事实、原台词、有效前场末态及观看信息；分析完成后才预算 |
-| SCxx_BUDGET_SEGMENT | [时长与分段](references/timing.md)，涉及平台限制时读[模型适配](references/model-adaptation.md#s5-2) | 有效场分析、原文链、话轮卡、已确认上限、顺序并行依据及首尾承接 |
+| EPxx-SCxx_ANALYSIS | [观看任务、空间与连续性](references/shot-writing.md) | 当前场完整原文、人物空间事实、原台词、有效前场末态及观看信息；分析完成后才预算 |
+| EPxx-SCxx_BUDGET_SEGMENT | [时长与分段](references/timing.md)，涉及平台限制时读[模型适配](references/model-adaptation.md#s5-2) | 有效场分析、原文链、话轮卡、已确认上限、顺序并行依据及首尾承接 |
 | FORMAL_n | [镜头写法](references/shot-writing.md)、[完整母稿](references/video-template.md#s5-1)、[时长复算](references/timing.md)、[相关摄影条目](references/camera-reference.md) | 本段原文、有效资产、场分析、预算、实际文字起态及前驱证据；交稿后按正文复算 |
 | 模型提交适配 | [适配规则](references/model-adaptation.md#s5-2)、[素材职责](references/asset-templates.md)、适用预算及状态规则 | 有效母稿、同版原剧本及 speech_id 话轮卡、预算、真实素材职责和模型能力依据；不可只比母稿摘要 |
 | 历史返修 | 原产物任务的全部必要资料＋[返修规则](references/state-and-revision.md#s7-6) | 历史版本、要求、覆盖、预算、物理末态和观看依赖；完整重交付，复算受影响部分 |
@@ -140,9 +140,9 @@ description: >
 
 发现已确认新造型或状态缺提示词时进入增量资产队列，记录return_to=原未完成目标及phase；补齐后返回原目标，不重做身份、不跳回第一集。实际图片尚未生成不等于文字提示词未交付。
 
-本轮不输出逐镜分镜表、分段正文。完成后next_required=本集第一未完成场次的SCxx_ANALYSIS。
+本轮不输出逐镜分镜表、分段正文。完成后next_required=本集第一未完成场次的EPxx-SCxx_ANALYSIS。
 
-### 第五步 按场分析 SCxx_ANALYSIS
+### 第五步 按场分析 EPxx-SCxx_ANALYSIS
 
 以整场为单位保留剧情分析、角色关系与状态、空间结构、事件链、原台词和声音、必要动作先后／自然并行、关键因果与信息揭示次序，判断该场实际造型及前场末态是否适用。分析本场全部内容后再分段，不先按固定秒数切碎再反复分析。
 
@@ -150,9 +150,9 @@ description: >
 
 交付场次分析和稳定事件链登记。空间、人物和环境用具体事实描述，不重写剧本，不展开拍摄备选、导演手法论证、详细分镜表或固定镜头配额。
 
-完成后prep_step=ANALYSIS_DONE，next_required=SCxx_BUDGET_SEGMENT。该场后续所有段复用此分析，只有事实或用户修改使其失效时才补受影响部分。
+完成后prep_step=ANALYSIS_DONE，next_required=EPxx-SCxx_BUDGET_SEGMENT。该场后续所有段复用此分析，只有事实或用户修改使其失效时才补受影响部分。
 
-### 第六步 时长预算与分段 SCxx_BUDGET_SEGMENT
+### 第六步 时长预算与分段 EPxx-SCxx_BUDGET_SEGMENT
 
 完整执行[时长计算](references/timing.md)。先按整场事件／对白／动作阶段计算真实所需时长，再按合法边界拆段。此阶段可以核对拍摄承载是否可行，但不交付独立镜头设计方案；最终镜头写进正式Prompt，正式版本再按实际镜头复算。
 
@@ -176,13 +176,14 @@ description: >
 
 ## 项目材料与保存
 
-每个项目保留一份当前权威状态，历史快照另存。新项目可采用 `source/`、`run-state.txt`、`assets/`、`scenes/`、`prompts/`；已有项目沿用实际位置，不为目录统一强制迁移。
+每个项目保留一份当前权威状态，历史快照另存。新文件项目可采用 `source/`、`run-state.json`、`assets/`、`scenes/`、`prompts/`，由[校验工具](references/validation.md)检查结构化状态与预算；已有run-state.txt或会话项目沿用实际位置，按[1.9迁移规则](references/state-and-revision.md#s7-8)补足证据后再转换，不为目录统一强制迁移。
 
 - 模型能力及依据存 `project_decisions`；素材事实只存所属资产记录或 `visual_reference`，其余引用。
 - 母稿与适配版本关联存 `prompt_versions`；预算及实测依据存话轮卡与 `budget_ref` 指向记录。
 - 交付、检查、真实任务与媒体观察归所属 `step_ledger`；返修及待补事项保存 `edit_context`／`return_to`；恢复证据存 `recovery_evidence`。
-- 沿用[完整 RUN_STATE](references/state-and-revision.md#s7-3)的 75 个顶层字段与既有职责。包版本和项目状态版本分开，拆文件不改状态协议。
-- 按[持久保存规则](references/state-and-revision.md#s7-2)检查实际写入后再报告成功；失败时保留上一有效状态并交付必要会话状态。
+- 沿用[完整 RUN_STATE](references/state-and-revision.md#s7-3)的 75 个顶层字段；1.9扩展链内游标和请求生命周期，按实际语义迁移，不只替换版本标签。
+- 有可执行环境时按[机械校验说明](references/validation.md)检查JSON候选的字段、区间、前缀、版本和预算，再核对人工语义与真实交付证据；错误先修正，未执行的校验明确记录。工具不能从自由文本推断缺失事实，无工具时按相同不变量核对并保存完整必要状态。
+- 按[持久保存规则](references/state-and-revision.md#s7-2)检查实际写入后再报告成功；替换前失败时保留上一有效状态并交付必要会话状态，已替换后的清理告警按实际提交结果报告。
 
 ## 交付检查
 

@@ -15,3 +15,8 @@ Desktop.ini
 *.tmp
 *.swp
 *~
+
+# Python verification cache
+__pycache__/
+*.py[cod]
+.pytest_cache/

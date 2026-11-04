@@ -2,7 +2,7 @@
 
 将中文剧本、剧情或动作笔记整理为项目分析、人物场景道具图片提示词、集场规划、整场时长预算与分段，以及逐段视频提示词。
 
-技能标识：`script-to-storyboard-prompts`。技能包版本：**0.2.0**，规则基线与项目状态版本：**1.8**。
+技能标识：`script-to-storyboard-prompts`。技能包版本：**0.3.0**，当前规则与项目状态版本：**1.9**；原始单文本v1.8继续作为历史基线保存。
 
 ## 使用入口
 
@@ -11,6 +11,7 @@
 | [SKILL.md](SKILL.md) | 技能入口、七步流程和按任务读取路由 |
 | [参考资料](references/) | 完整资产与视频模板、模型适配、预算、状态和摄影资料 |
 | [验收用例](evals/scenarios.md) | 维护技能时的输入、前置条件及状态断言 |
+| [机械校验](references/validation.md) | JSON格式、状态／预算校验、提交边界和回归命令 |
 | [实施与验收记录](docs/技能包实施与验收记录.md) | 迁移检查、测试结果、已知问题和未测范围 |
 | [架构与维护](docs/剧本转分镜提示词-技能化方案.md) | 文件归属、路径、状态版本和维护约束 |
 | [单文本规范 v1.8](specs/script-to-storyboard-prompts-v1.8.txt) | 原始迁移基线，也可独立复制或上传给模型使用 |
@@ -18,16 +19,17 @@
 
 ## 安装
 
-将 `SKILL.md`、`references/` 和 `evals/` 一起复制到支持技能的客户端目录，保留这一层目录名：
+将 `SKILL.md`、`references/`、`scripts/` 和 `evals/` 一起复制到支持技能的客户端目录，保留这一层目录名：
 
 ```text
 ~/.agents/skills/script-to-storyboard-prompts/
 ├── SKILL.md
 ├── references/
+├── scripts/
 └── evals/
 ```
 
-仓库根目录本身就是技能包。也可将完整仓库克隆到上述目录；`docs/`、`specs/` 和 README 是说明资料，不是运行时必读前驱。
+仓库根目录本身就是技能包。维护者建议复制完整仓库，保留 `tests/` 以复跑回归；`docs/`、`specs/` 和 README 是说明资料，不是正常文字制作的必读前驱。校验工具只用Python 3.10+标准库；没有Python的客户端仍可按规则进行文字核对，并如实标记程序检查未执行。
 
 ZCode 支持用户级 `~/.agents/skills/`。安装后在新会话中从“设置 → Skills”或输入框 `/` 菜单确认发现情况。已有同名目录时先比较，不直接覆盖；用户 `.zcode/skills/` 中的同名技能可能优先加载。其他客户端的目录、刷新和调用语法以该客户端说明为准。
 
@@ -69,9 +71,18 @@ ZCode 支持用户级 `~/.agents/skills/`。安装后在新会话中从“设置
 │   ├── model-adaptation.md
 │   ├── timing.md
 │   ├── state-and-revision.md
-│   └── camera-reference.md
+│   ├── camera-reference.md
+│   └── validation.md
+├── scripts/
+│   ├── check_package.py
+│   ├── run_checks.py
+│   └── storyboard_checks.py
+├── tests/
+│   └── test_state_budget.py
 ├── evals/
-│   └── scenarios.md
+│   ├── scenarios.md
+│   ├── fixtures/state-budget/
+│   └── runs/
 ├── docs/
 │   ├── 剧本转分镜提示词-技能化方案.md
 │   ├── 技能包实施与验收记录.md
@@ -80,11 +91,41 @@ ZCode 支持用户级 `~/.agents/skills/`。安装后在新会话中从“设置
     └── script-to-storyboard-prompts-v1.8.txt
 ```
 
+## 状态与预算校验
+
+0.3.0支持链内锚点和部分覆盖；返修后重新计算连续有效进度，保留仍有效的后续段；适配请求可明确取消并恢复原目标。母稿时间码统一相对本段0秒。旧项目按[1.9迁移说明](references/state-and-revision.md#s7-8)核对实际记录，不直接替换版本号。
+
+新文件项目优先保存 `run-state.json` 和结构化预算，聊天仅展示短回执与文件位置。程序只检查明确字段、覆盖区间、版本映射和时间算术；剧情、表演、并行合理性和真实交付仍需要语义核对。使用方法及边界见[机械校验说明](references/validation.md)。
+
+在完整仓库根目录运行：
+
+```bash
+python -I scripts/check_package.py
+python -I -m unittest discover -s tests -v
+```
+
+一次运行两类检查并保存可追溯结果（每次使用新的结果文件名）：
+
+```bash
+python -I scripts/run_checks.py --output evals/runs/local-check.json
+```
+
+结果包含受测文件SHA-256、测试原始输出和退出码；输入在运行中变化或未发现测试时不会报告通过。已有结果文件不会被覆写。
+
+检查项目文件时使用绝对路径，例如：
+
+```bash
+python -I scripts/storyboard_checks.py check --state /absolute/project/run-state.json --budget /absolute/project/segment-budget.json
+python -I scripts/storyboard_checks.py derive --state /absolute/project/run-state.json
+```
+
+`check`、`derive`和`cancel`不覆写权威状态；`cancel`生成有明确决定依据的候选，只有显式`commit`才写回。旧自由文本状态不由程序自动解析或迁移。
+
 ## 验证说明
 
-0.1.0已完成迁移、链接和安装副本检查，并进行了静态审查及三组10轮模拟用户测试。0.2.0补充执行细节及可选策略，并完成静态复审、可选策略门控重跑及执行细节文本模拟。**当前验证结果为部分通过**：旧B1/B2曾越过三项确认，修正后重跑通过；C1/C3使用模拟前置而非完整逐项确认；历史人物用光与完整状态问题仍保留。完整结果见[验收记录](docs/技能包实施与验收记录.md)。
+当前保持**分范围验收**：包结构和确定性回归使用上述命令；模型文字行为、客户端发现与触发、真实媒体另行验证。0.1.0／0.2.0历史测试与失败完整保留，不能因本版修订追溯改成通过。当前版本运行结果及限制见[实施与验收记录](docs/技能包实施与验收记录.md)。
 
-`evals/scenarios.md` 提供53个待执行人工用例，不会自动运行。新会话发现与自动触发、完整端到端制作和真实媒体效果尚未验证，不能以文字检查代替。
+`evals/scenarios.md`提供60个人工行为用例；`evals/fixtures/state-budget/`提供可移植的确定性回归数据。程序通过不自动将人工用例记为通过。新会话发现与自动触发、完整端到端制作和真实媒体效果尚未全面验证。
 
 本仓库保留 v1.8 源规范的原始字节，其 SHA-256 为：
 
