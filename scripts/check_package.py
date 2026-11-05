@@ -10,18 +10,19 @@ import re
 from urllib.parse import unquote, urlsplit
 
 
-PACKAGE_VERSION = "0.3.0"
+PACKAGE_VERSION = "0.4.1"
 STATE_VERSION = "1.9"
 WORKFLOW_SCHEMA = "SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4"
 SOURCE_SHA256 = "ed1d533c3019d7048a602887b523967d2312dd2cc6a23fe9ac8891bf91d5defe"
 EXPECTED_CASES = {f"G{group:02d}-{case:02d}" for group, count in enumerate(
-    [4, 2, 4, 1, 5, 2, 3, 7, 4, 4, 9, 7], 1
+    [4, 2, 4, 1, 5, 2, 3, 7, 4, 4, 9, 7, 10], 1
 ) for case in range(1, count + 1)} | {f"T{group:02d}-{case:02d}" for group in range(1, 5) for case in range(1, 3)}
 REQUIRED = (
     "SKILL.md", "README.md", "references/asset-templates.md",
     "references/camera-reference.md", "references/model-adaptation.md",
     "references/shot-writing.md", "references/state-and-revision.md",
     "references/timing.md", "references/video-template.md", "references/validation.md",
+    "references/transitions.md",
     "scripts/storyboard_checks.py", "tests/test_state_budget.py",
     "evals/scenarios.md", "evals/fixtures/state-budget",
     "specs/script-to-storyboard-prompts-v1.8.txt",

@@ -24,7 +24,7 @@ next_required是唯一可推进的目标，不能写多个候选。每轮开始�
 
 FILE模式的母稿正文文件只含[5.1](video-template.md#s5-1)内容；存在适配稿时另存干净提交文本及必要参数／输入说明，版本映射、能力证据、预算和媒体观察仍保存在运行记录中。给出各份用途与最短状态回执，避免把母稿与适配稿连续当作一份提交。CHAT模式分别标明可复制范围，在其后另起【运行状态 不属于视频提示词】，提供完整必要状态及当前覆盖、预算、首尾记录。纯正文展示不等于删除状态。
 
-FILE短回执至少包括：本轮目标与完成状态、state_seq、episode_id／scene_id、last_output、last_completed_formal、next_required、awaiting_continue、script_cursor、存在时的blocking_items／edit_lock／invalidated_from、state_ref／plan_ref及版本。本轮COMPLETE时明确next_required=COMPLETE。
+FILE短回执至少包括：本轮目标与完成状态、state_seq、episode_id／scene_id、last_output、last_completed_formal、next_required、awaiting_continue、script_cursor、存在时的blocking_items／edit_lock／invalidated_from、state_ref／plan_ref及版本。本轮COMPLETE时明确next_required=COMPLETE。区分“本轮交付了什么”与“用户目标是否完成”：目标IN_PROGRESS／BLOCKED时如实写未完成及缺口，不能因条件计划已交付而套用“已完成”回执；正文、短回执与状态保持一致。
 
 会话模式若累计内容过长，可把同一状态快照单独作为可复制文本块或附件，仍属于同一次交付；没有真实可访问归档时不得将完整账本压成无效路径或“此前同上”。已归档前场可留索引，当前场和受返修影响的历史段保留完整有效记录。
 
@@ -99,7 +99,7 @@ execution_mode=REVIEW
 step_policy=STRICT
 performance_mode=[沿用用户NORMAL／PRECISE设置，无要求时NORMAL]
 awaiting_continue=[true／false]
-step_ledger=[每个已开始单元的status=IN_PROGRESS／DONE／REUSED／INVALID／CANCELLED，交付位置与版本、决定依据；CANCELLED只关闭明确撤销的可选事项，不满足必做前驱；checks分别记录TEXT、INPUT、CAPABILITY、MEDIA的实际结论、范围与证据，不以一个PASS代替四类检查。按[7.9](state-and-revision.md#s7-9)在所属单元内保存media_observations和实际generation记录；未执行媒体检查记NOT_RUN，未开始单元不得预填DONE]
+step_ledger=[每个已开始单元的status=IN_PROGRESS／DONE／REUSED／INVALID／CANCELLED，交付位置与版本、决定依据；CANCELLED只关闭明确撤销的可选事项，不满足必做前驱；checks分别以status、scope、evidence记录TEXT、INPUT、CAPABILITY、MEDIA的实际结论、范围与证据；每项PASS均附本项实际核对材料或检查记录的可定位引用，不只写“已读／已核对”，不以一个PASS代替四类检查。按[7.9](state-and-revision.md#s7-9)在所属单元内保存media_observations和实际generation记录；未执行媒体检查记NOT_RUN，未开始单元不得预填DONE]
 blocking_items=[NONE或数组；每项记录step_id、phase、具体缺口、阻断范围及关联request_id（有独立请求时）；只有阻断当前目标或其实际依赖的事项才使本轮WAIT_USER，其他事项保留但不扩大阻断]
 edit_lock=[NONE或当前返修目标ID]
 edit_context=[返修前phase、next_required、last_completed_formal、script_cursor、旧版本、修改范围；源于媒体反馈时附观察记录、时码证据、归责判断及本次主要改动，检查后恢复原目标]
@@ -245,6 +245,8 @@ v1.6更新影像风格与光影的写法及对应模板，沿用现有三项制�
 本节只在用户提供真实媒体、要求检查，或另行授权媒体生产并已有结果时使用。没有媒体不生成空验收报告，也不把试听、动态预演或成片验收列为文字制作的必做前驱。按已有工具实际读取；工具不能播放声音或只能看抽帧时，记录未检查范围，不声称听过、看过全片或已验证口型。
 
 先观察实际结果，再对照母稿、适配稿、原剧本和任务输入定位问题，避免只看清单而漏掉明显异常。所属step_ledger.checks区分四类：TEXT为原文、时间与连续性文字检查；INPUT为素材及参数准备；CAPABILITY为目标模式的已核实能力；MEDIA为实际结果观察。各类保存status、scope与evidence；可用PENDING／PASS／FAIL／UNKNOWN／NOT_RUN／NOT_APPLICABLE表达实际情况，无适用任务时注明原因。局部通过只适用于已检查版本和范围。
+
+连接检查按[转场执行](transitions.md#transition-review)区分静态、动态、声音和实际拼接范围，实际出入点关联素材版本并使用其真实时码。段内连接在正文及transition_review核对，段间计划归transition_plan，媒体证据只保存于所属media_observations并由连接记录引用；不增加RUN_STATE顶层字段或重复覆盖。
 
 有观察结果时在所属单元的media_observations记录：
 

@@ -2,3 +2,8 @@
 .gitignore text eol=lf
 .gitattributes text eol=lf
 specs/*.txt -text
+
+# Preserve byte-exact validation records and archived first responses.
+evals/runs/0.4.0-*.json -text -whitespace
+evals/runs/0.4.1-*.json -text -whitespace
+evals/runs/0.4.1-user-review/** -text -whitespace

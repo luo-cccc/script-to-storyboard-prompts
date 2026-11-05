@@ -1,6 +1,6 @@
 # 状态与预算机械校验
 
-适用技能包0.3.0、状态1.9、`SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4`。程序只用Python 3.10+标准库，入口是[storyboard_checks.py](../scripts/storyboard_checks.py)。无Python时仍按[状态规则](state-and-revision.md)和[时间规则](timing.md)人工核对，记录程序检查未执行。
+适用技能包0.3.0起采用的状态1.9、`SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4`。程序只用Python 3.10+标准库，入口是[storyboard_checks.py](../scripts/storyboard_checks.py)。无Python时仍按[状态规则](state-and-revision.md)和[时间规则](timing.md)人工核对，记录程序检查未执行。
 
 ## 使用范围
 

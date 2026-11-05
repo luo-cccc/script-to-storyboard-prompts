@@ -47,4 +47,4 @@ python -I scripts/storyboard_checks.py derive --state evals/fixtures/state-budge
 
 测试还检查严格JSON解析、制作条件确认和check／derive只读性。输入中留存的证据只做结构及关联核对，不证明真实交付、F3语义依赖有效、并行安排可执行或对白映射完整。
 
-本目录及单元测试只对应D方法。模型文字行为H、客户端发现与触发F、真实媒体M仍须分别执行和记录，不因机械回归通过而把60个人工用例改成PASS。完整字段和提交边界见[机械校验说明](../../../references/validation.md)。
+本目录及单元测试只对应D方法。模型文字行为H、客户端发现与触发F、真实媒体M仍须分别执行和记录，不因机械回归通过而把人工用例改成PASS。完整字段和提交边界见[机械校验说明](../../../references/validation.md)。
