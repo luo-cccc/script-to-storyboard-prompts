@@ -13,7 +13,7 @@ import sys
 
 def input_hashes(root: Path) -> dict[str, str]:
     paths = [root / "SKILL.md", root / "README.md", root / "evals/scenarios.md"]
-    for directory in ["references", "scripts", "tests", "evals/fixtures", "specs", "docs"]:
+    for directory in ["references", "scripts", "tests", "evals/fixtures", "evals/media-pilot", "specs", "docs"]:
         paths.extend(path for path in (root / directory).rglob("*")
                      if path.is_file() and "__pycache__" not in path.parts
                      and path.suffix in {".py", ".md", ".json", ".txt"})
@@ -37,6 +37,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, help="New JSON evidence file; existing files are never overwritten")
     args = parser.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     if args.output is not None and args.output.exists():
         parser.error("--output already exists; choose a new run filename")
     root = Path(__file__).resolve().parents[1]

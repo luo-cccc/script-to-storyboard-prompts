@@ -1,6 +1,6 @@
 # 剧本转分镜提示词：人工验收场景
 
-本文件将技能规则展开为可逐项执行的人工用例：13 个业务组、62 个业务用例，以及 4 类触发输入、8 个触发用例，共70例。`evals/` 位于技能包根目录，本文保存人可读的验收规格，[fixtures/state-budget/](fixtures/state-budget/)保存可移植的机械回归数据。本文列出的预期不是实际结果；人工行为用例初始为 `NOT_RUN`。确定性测试通过不自动把对应H／F／M改为通过，也不表示技能已发现、媒体已生成。
+本文件将技能规则展开为可逐项执行的人工用例：14 个业务组、72 个业务用例，以及 4 类触发输入、8 个触发用例，共80例。`evals/` 位于技能包根目录，本文保存人可读的验收规格，[fixtures/state-budget/](fixtures/state-budget/)保存可移植的机械回归数据。本文列出的预期不是实际结果；人工行为用例初始为 `NOT_RUN`。确定性测试通过不自动把对应H／F／M改为通过，也不表示技能已发现、媒体已生成。
 
 导航：[执行方法](#methods) · [测试夹具](#fixtures) · [业务用例](#business-cases) · [执行细节与可选策略](#execution-options) · [状态回归](#state-regression) · [转场用例](#transition-cases) · [触发用例](#trigger-cases) · [结果记录](#results)。规则入口是 [SKILL.md](../SKILL.md)，不依赖原单文本规范或外部 Word 模板。
 
@@ -160,15 +160,15 @@ L08 许舟停在门内，左手搭门把，门仍关着；岑雨留在桌西侧�
 - 方法：H；比较分析内容与 S1 全文，逐项核对三项确认卡、风格正文和状态差异；S只能核对规则与字段存在。
 - 实际结果：NOT_RUN。
 
-#### G01-02 只确认画幅
+#### G01-02 只确认画幅，风格只给方向
 
 - 前置条件：本例预置 G01-01 类型的完整分析和三项待确认卡；只有建议，无 selected。
-- 用户输入：“视频用16:9，质感和段长我还没决定。”
+- 用户输入：“视频用16:9，质感偏冷的写实就行，段长我还没决定。”
 - 应读资料：入口、状态；本例分析、确认卡及当前这条决定。
-- 预期交付：回显16:9已确认，只询问质感与单段上限；复用已交分析，不重复整套分析或要求再次确认画幅。
-- 允许状态变化：仅确认 `video_aspect_ratio` 及依据，清除对应缺项；其余两项 PENDING，仍 WAIT_USER。
-- 禁止状态变化：不得把风格或秒数推定确认，不进入资产；覆盖、原文游标和正式前缀保持空／0。
-- 方法：H；逐字段比较前后确认卡，并检查输出仅处理剩余决定。
+- 预期交付：回显16:9已确认；按“偏冷的写实”写出一份完整风格正文作为建议，请用户采用或修改；询问单段上限；复用已交分析，不重复整套分析或要求再次确认画幅。
+- 允许状态变化：仅确认 `video_aspect_ratio` 及依据，清除对应缺项；风格建议存 `visual_style.recommended`，风格与段长仍 PENDING，仍 WAIT_USER。
+- 禁止状态变化：不得把据方向写出的风格正文记 selected／CONFIRMED 或 TEXT_READY，不得把秒数推定确认，不进入资产；覆盖、原文游标和正式前缀保持空／0。
+- 方法：H；逐字段比较前后确认卡，检查风格正文标为建议、输出仅处理剩余决定。
 - 实际结果：NOT_RUN。
 
 #### G01-03 待确认时的“继续”
@@ -873,6 +873,121 @@ L08 许舟停在门内，左手搭门把，门仍关着；岑雨留在桌西侧�
 - 方法：H检查约束与能力推理，S可单独复核明确阶段算术；真实接点需M另测。
 - 实际结果：NOT_RUN。
 
+<a id="tools-and-policies"></a>
+### 14 0.5.0 校验工具、可选策略与模型执行
+
+本组对应0.5.0新增的前驱闸门、检查证据、状态命令、正文检查和可选执行策略，以及媒体试点得出的首帧与分镜生成规则。D部分由[gates测试](../tests/test_gates_and_tools.py)覆盖；H与F尚未执行。
+
+#### G14-01 用init建立新项目状态
+
+- 前置条件：P-NEW；项目根已明确，剧本保存在 `source/script.md`，没有旧状态。
+- 用户输入：“用剧本转分镜提示词处理这个项目，剧本在source/script.md，先分析。”
+- 应读资料：入口、状态、[校验命令](../references/validation.md)；S1全文。
+- 预期交付：先用 `init` 建立合法初始状态（PROJECT_SETUP、next_required=PROJECT_BASELINE、三项PENDING、覆盖为空），再交付完整分析与三项选择。
+- 允许状态变化：新建run-state.json；分析交付后按7.5转为WAIT_USER。
+- 禁止状态变化：不得覆盖已有文件、预填三项CONFIRMED或跳过分析。
+- 方法：D检查 `init` 输出合法且不覆写；H检查之后的分析轮。
+- 实际结果：D：PASS（test_init_is_valid_and_never_overwrites）；H：NOT_RUN。
+
+#### G14-02 缺前驱的正式段被拒绝
+
+- 前置条件：P-F0，但step_ledger缺少EP01-SC01_ANALYSIS记录；其余字段看起来已就绪。
+- 用户输入：“继续。”
+- 应读资料：入口、状态、[前驱闸门](../references/validation.md#predecessor-gates)。
+- 预期交付：检查发现FORMAL_1缺少场分析前驱，不交正式段，说明实际缺口并指向正确目标。
+- 允许状态变化：只记录真实缺口或恢复轮的必要记录。
+- 禁止状态变化：不得输出FORMAL_1、推进覆盖或把缺失步骤补记为DONE。
+- 方法：D检查PREDECESSOR拒绝；H检查答复不越过缺口。
+- 实际结果：D：PASS（test_formal_target_needs_assets_and_scene_preparation）；H：NOT_RUN。
+
+#### G14-03 每个PASS都附本项证据
+
+- 前置条件：人物步骤的INPUT=PASS只有scope“已读原文”，没有evidence。
+- 用户输入：“检查一下当前状态能不能继续。”
+- 应读资料：入口交付检查、状态7.3、[检查证据](../references/validation.md#predecessor-gates)。
+- 预期交付：指出该PASS缺少可定位证据；读原文的证据归TEXT，人物步骤没有素材或参数时INPUT改为NOT_APPLICABLE并写明原因，无法核实的改为UNKNOWN；作为状态恢复提交并停止，下一条“继续”再交原目标。
+- 允许状态变化：修正该检查记录；recovery_evidence、last_output=STATE_RECOVERY、state_seq递增。
+- 禁止状态变化：不得用“已读”代替证据、编造引用或删除该检查项；其他已有可定位证据的检查记录不因类别说明改写。
+- 方法：D检查CHECK_EVIDENCE；H检查修正方式。
+- 实际结果：D：PASS（test_every_pass_needs_its_own_evidence、test_archived_run_fails_only_on_the_known_evidence_gap）；H：NOT_RUN。
+
+#### G14-04 受阻目标的回执由状态生成
+
+- 前置条件：P-F3后补适配缺首帧，next_required=WAIT_USER，有带request_id的阻断。
+- 用户输入：“给我这轮的回执。”
+- 应读资料：状态7.2、[receipt](../references/validation.md)。
+- 预期交付：回执写“目标未完成（受阻）”和具体缺口，覆盖、游标与返回目标与状态一致。
+- 允许状态变化：无。
+- 禁止状态变化：不得写“已完成”、改变next_required或新增覆盖。
+- 方法：D检查 `receipt` 文本；H检查答复正文与回执一致。
+- 实际结果：D：PASS（test_receipt_never_reports_a_blocked_target_as_done）；H：NOT_RUN。
+
+#### G14-05 用patch提交并同步派生字段
+
+- 前置条件：P-F0；FORMAL_1正文、预算和文字检查已完成，等待写入状态。
+- 用户输入：（执行者内部提交，无新用户输入）
+- 应读资料：状态7.4、[patch](../references/validation.md)。
+- 预期交付：patch操作只写覆盖、步骤、正文状态与下一目标；工具重算last_completed_formal、script_cursor和next_chain_unstarted，state_seq加1。
+- 允许状态变化：一次有效覆盖、序号加1。
+- 禁止状态变化：不得直接改序号或派生字段，不得指向非前沿目标，不得重复提交同一候选。
+- 方法：D。
+- 实际结果：D：PASS（test_patch_applies_operations_and_syncs_derived_fields、test_patch_rejections、test_patch_cli_commits_once）。
+
+#### G14-06 正文检查制作用语与原台词
+
+- 前置条件：0.4.1样例母稿、原剧本及分段计划可读。
+- 用户输入：“检查第1段母稿能不能直接给视频模型。”
+- 应读资料：[可执行的措辞](../references/shot-writing.md#s3-9)、[正文检查](../references/validation.md#prompt-lint)。
+- 预期交付：列出制作用语、过程否定、镜头内世界方向，以及提前出现的下一段台词；按3.9给出可执行的改写。
+- 允许状态变化：无，或只记录检查结果。
+- 禁止状态变化：不得改动有效母稿而不走返修，不得把警告当成媒体结论。
+- 方法：D检查 `prompt_lint.py` 在基线与优化稿上的差异；H检查改写建议。
+- 实际结果：D：PASS（test_pilot_prompts_baseline_vs_optimized、test_pilot_failure_patterns_are_reported）；H：NOT_RUN。
+
+#### G14-07 按场准备资产
+
+- 前置条件：用户明确选择SCENE_ASSETS；EP01_PLAN完成；第1场所需资产已完成，第2场的道具仍待做。
+- 用户输入：“继续。”
+- 应读资料：[7.10](../references/state-and-revision.md#s7-10)、[前驱闸门](../references/validation.md#predecessor-gates)。
+- 预期交付：开始第1场分析；第2场道具留到第2场之前再做。
+- 允许状态变化：按场推进，asset_queue各单元带needed_by。
+- 禁止状态变化：不得在第1场所需资产未完成时进入第1场分析，不得改变场内人物在前、场景在前于道具的顺序。
+- 方法：D检查闸门；H检查轮次推进。
+- 实际结果：D：部分覆盖（test_scene_assets_policy_only_needs_the_current_scene 检查第1场正式段不等第2场资产；test_scene_assets_shared_unit_uses_the_scene_being_prepared 检查多场共用单元按正在准备的场次判断；没有以第1场分析为目标的单独测试）；H：NOT_RUN。
+
+#### G14-08 连续准备在需要决定处停止
+
+- 前置条件：用户明确选择BATCH_PREP；三项已确认，人物、场景、道具、集规划、场分析和预算均待做。
+- 用户输入：“继续。”
+- 应读资料：[7.10](../references/state-and-revision.md#s7-10)、状态7.5。
+- 预期交付：同一轮依次完成准备单元，每个单元保存状态与证据；到达FORMAL_1、WAIT_USER或需要决定的事项时停止。
+- 允许状态变化：多个准备单元各自DONE，awaiting_continue=true。
+- 禁止状态变化：不得越过三项确认、批量输出正式段、把多个单元合成一条记录或越过返修锁。
+- 方法：H。
+- 实际结果：NOT_RUN。
+
+#### G14-09 首帧、接续与分镜生成
+
+- 前置条件：已有有效母稿；目标模型只支持首帧模式，首帧与参考图不能混用；身份、场景、道具资产图真实可读。
+- 用户输入：“按这个模型的首帧模式准备第1段和第2段的提交材料。”
+- 应读资料：[I 模板](../references/asset-templates.md#asset-i)、[帧链与分镜生成](../references/model-adaptation.md#frame-chaining)、[两套时钟](../references/timing.md#s6-7)。
+- 预期交付：用资产图生成写开场状态的首帧提示词，核对手臂数量与左右；第2段接续时先检查上一段末帧；景别大幅变化的镜头作为单独的生成任务，记录局部时间与段时码的映射。
+- 允许状态变化：首帧与修正记录归所属资产记录，任务归所属step_ledger，观察归media_observations。
+- 禁止状态变化：不得把四视图板当首帧、未核对手臂就称首帧可用、因分镜生成增加formal_id，或以写了“无字幕”代替字幕检查。
+- 方法：H＋M。
+- 实际结果：M：部分执行，见[0.5.0媒体试点报告](../docs/0.5.0-媒体试点报告.md)；H：NOT_RUN。
+
+#### G14-10 已迁移状态不再重做恢复
+
+- 前置条件：状态1.9／V4，每项PASS都有可定位证据，上一轮已按7.8完成迁移（last_output=STATE_RECOVERY），next_required=FORMAL_1。
+- 用户输入：“继续。”
+- 应读资料：入口共同入口第4步、状态7.5、7.8。
+- 预期交付：直接交付FORMAL_1完整母稿；不把已通过校验的状态再做一次STATE_RECOVERY，也不因四类检查的说明变化改写旧记录。
+- 允许状态变化：FORMAL_1的步骤、覆盖与prompt_versions；state_seq递增。
+- 禁止状态变化：不得新增recovery_evidence、不得把last_output改回STATE_RECOVERY、不得重写其他单元的检查类别。
+- 方法：H检查续作判断；D检查check对轮前状态通过。
+- 实际结果：H：PASS（sim-4c第01轮，skills-v4；sim-4b第02轮在skills-v3上曾失败）；D：PASS（check对轮前状态ok=true）。
+
 <a id="trigger-cases"></a>
 ## 四类触发输入
 
@@ -975,11 +1090,35 @@ L08 许舟停在门内，左手搭门把，门仍关着；岑雨留在桌西侧�
 - 实际结果：NOT_RUN。
 
 
+<a id="rule-coverage"></a>
+## 规则覆盖索引
+
+每条核心规则至少对应一个用例；[包检查](../scripts/check_package.py)核对表中用例编号存在。规则正文以所链接的章节为准。
+
+| 规则 | 内容与位置 | 用例 |
+|---|---|---|
+| R01 | 三项制作条件逐项确认，“继续”不代替选择（[第一步](../SKILL.md)） | G01-01 G01-02 G01-03 G01-04 |
+| R02 | 人物首次同轮交付母图与四视图（[第二步](../SKILL.md)） | G02-01 G02-02 |
+| R03 | 集规划、场分析先于预算，增量资产保存并返回（[7.5](../references/state-and-revision.md#s7-5)） | G03-01 G03-02 G03-03 G03-04 |
+| R04 | 整场预算后合法分段，正文按实际镜头复算（[时长](../references/timing.md)） | G04-01 G06-01 G11-04 |
+| R05 | 每轮唯一目标，一次有效覆盖，连续有效前缀（[7.4](../references/state-and-revision.md#s7-4)） | G09-01 G12-01 G12-02 G12-05 |
+| R06 | 模型适配只派生，必要能力或输入缺失只阻断对应目标（[5.2](../references/model-adaptation.md#s5-2)） | G05-01 G05-02 G05-04 G05-05 G12-03 |
+| R07 | 返修锁、局部修改与依赖失效（[7.6](../references/state-and-revision.md#s7-6)） | G08-01 G08-02 G08-03 G12-04 |
+| R08 | 普通重发、逐字复送与恢复（[7.7](../references/state-and-revision.md#s7-7)） | G08-04 G08-05 G08-06 G08-07 G09-02 G09-03 |
+| R09 | 媒体观察分范围记录，不以文字通过代替（[7.9](../references/state-and-revision.md#s7-9)） | G07-01 G07-02 G07-03 G13-06 |
+| R10 | 镜头连接按依据选择，真实出入点与桥接归原预算（[转场](../references/transitions.md)） | G13-01 G13-02 G13-08 G13-10 |
+| R11 | 前驱闸门与每个PASS附证据（[校验](../references/validation.md#predecessor-gates)） | G14-02 G14-03 |
+| R12 | 回执与提交由状态工具生成（[校验命令](../references/validation.md)） | G14-01 G14-04 G14-05 |
+| R13 | 交给模型的正文使用可执行的措辞（[3.9](../references/shot-writing.md#s3-9)） | G14-06 |
+| R14 | 首帧承担身份、接续前检查末帧、景别大变化时分镜生成（[帧链](../references/model-adaptation.md#frame-chaining)） | G14-09 |
+| R15 | 可选执行策略仅按用户选择启用（[7.10](../references/state-and-revision.md#s7-10)） | G11-06 G14-07 G14-08 |
+| R16 | 触发边界：不抢占其他流程，咨询不启动制作（[入口](../SKILL.md)） | T01-01 T01-02 T04-01 T04-02 |
+
 <a id="results"></a>
 ## 实际执行后的记录要求
 
 每次执行在对应案例下补充方法、时间、受测包版本／哈希、环境与项目定位、实际加载和读取轨迹、输入及夹具版本、输出位置、前后状态差异、逐项断言结果、失败原因或未覆盖范围。S／H／F／M分开记录，原始证据保留可读位置。只有实际执行的对应方法才可由NOT_RUN改成PASS／FAIL；环境缺失或未备齐媒体时保留NOT_RUN并说明缺项，不能用预期输出填充“实际结果”。
 
-静态验收应检查以下材料事实：13个业务组和4类触发组齐全；70个案例各有前置条件、实际用户输入、应读资料、预期交付、允许／禁止状态变化、方法和实际结果；链接按本文件所在位置解析；版本、source和覆盖夹具明确且无意外重叠；摄影手册保留完整正文、表格、例句与结束标记。此类检查结果不等于70个行为用例通过。
+静态验收应检查以下材料事实：14个业务组和4类触发组齐全；80个案例各有前置条件、实际用户输入、应读资料、预期交付、允许／禁止状态变化、方法和实际结果；链接按本文件所在位置解析；版本、source和覆盖夹具明确且无意外重叠；摄影手册保留完整正文、表格、例句与结束标记。此类检查结果不等于79个行为用例通过。
 
 包结构检查与确定性回归命令见[校验说明](../references/validation.md)。S／D／H／F／M结果分开记录；不把安装、自动发现、真实模型调用或媒体验收作为已经完成的事实。测试记录也不是剧本项目的权威RUN_STATE，不得拿测试预置DONE／PASS迁入真实项目。

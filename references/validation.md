@@ -8,9 +8,10 @@
 
 - `delivery_ref`、`budget_ref`和检查证据必须有值且映射一致。程序不读取这些位置的正文，不验证来源或用户决定真实，不保证外部路径仍可访问。
 - 资产设定、摄影、因果、表演、观看信息、失效依赖的语义和前驱内容仍须阅读核对。尤其是F3是否确实不受F2返修影响，由语义审查决定后再标有效。
-- `derive`计算覆盖前缀及其末态来源，不自动选择资产、集规划或场前置。它返回的`frontier`是首个未完成段号候选，不能绕过锁、阻断和必做前驱直接开始创作。
-- 单源版本、完整保留的有序链和计划是当前机械格式的边界。跨源版本先按实际证据归一化；稀疏归档、未明确映射的旧版本和嵌套返回上下文不由工具猜测。
-- 默认REVIEW／STRICT／ONE_AT_A_TIME。用户另行改变执行策略的项目需要人工处理，当前工具不自动解释新的策略。
+- `derive`计算覆盖前缀及其末态来源，不自动选择资产、集规划或场前置。它返回的`frontier`是首个未完成段号候选，不能绕过锁、阻断和必做前驱直接开始创作。`check`另按[前驱闸门](#predecessor-gates)核对当前目标的前驱记录。
+- 当前链与覆盖使用同一源版本；已全部交付的旧链可保留登记在`previous_versions`里的旧版本。未交付范围必须先映射到当前版本：旧版本链里的某段需要返修时，先在该链原文未变的前提下把链和已有覆盖记录无损改到当前版本，并在source_script_ref记录映射依据，再按7.6返修；原文有变化时按7.4先恢复或返修。稀疏归档、未明确映射的旧版本和嵌套返回上下文不由工具猜测。
+- 默认REVIEW／STRICT／ONE_AT_A_TIME，见[7.10](state-and-revision.md#s7-10)。`step_policy=SCENE_ASSETS`会改变前驱闸门的判断；`execution_mode=BATCH_PREP`工具只接受这个取值，一轮内连续准备的停止条件由人工核对。其他执行策略需要人工处理。
+- 0.5.0的资产单元、检查证据与前驱闸门规则只在完整校验（`check`、`commit`的候选、`patch`的结果）中执行；`derive`、`summary`和`commit`读取的旧快照不受这些规则限制，因此缺证据的旧项目可以生成迁移候选，再经`commit`替换。
 
 ## 命令
 
@@ -22,6 +23,10 @@ python -I scripts/storyboard_checks.py check --state /absolute/project/run-state
 python -I scripts/storyboard_checks.py derive --state /absolute/project/run-state.json
 python -I scripts/storyboard_checks.py cancel --state /absolute/project/run-state.json --request-id REQ-1 --decision-ref user-message:cancel-1 --output /absolute/project/candidate.json
 python -I scripts/storyboard_checks.py commit --state /absolute/project/run-state.json --candidate /absolute/project/candidate.json --expected-state-seq 12 --budget /absolute/project/segment-budget.json
+python -I scripts/storyboard_checks.py init --project-id P1 --source-version SRC-1 --source-location /absolute/project/source/script.md --output /absolute/project/run-state.json
+python -I scripts/storyboard_checks.py summary --state /absolute/project/run-state.json
+python -I scripts/storyboard_checks.py patch --state /absolute/project/run-state.json --ops /absolute/project/ops.json --output /absolute/project/candidate-13.json --commit
+python -I scripts/storyboard_checks.py receipt --state /absolute/project/run-state.json
 ```
 
 | 命令 | 作用与副作用 |
@@ -30,6 +35,10 @@ python -I scripts/storyboard_checks.py commit --state /absolute/project/run-stat
 | `derive` | 从覆盖计算连续前缀、下一源内锚点、兼容链ID、候选段号和有效末态来源；允许旧派生值尚未刷新，不写回、不自动推进 |
 | `cancel` | 根据唯一ACTIVE请求和明确返回上下文生成候选；默认输出完整候选JSON。`--output`只创建新文件，已有文件拒绝覆盖；不提交权威状态 |
 | `commit` | 校验独立候选、项目与序号、版本历史保留和可选预算后，显式替换权威状态文件 |
+| `init` | 生成合法的新项目快照（PROJECT_SETUP、next_required=PROJECT_BASELINE、三项未确认）。`--output`只创建新文件；`--conversation`改为打印会话快照 |
+| `summary` | 输出续作所需的精简视图：目标、游标、阻断、返修上下文、三项设定与风格全文、人物档案、项目决定、当前目标的计划、链与正文版本、相关步骤和连续性记录，并报告完整校验是否通过。状态不合法时仍输出视图和错误。不写文件，完整快照仍是权威状态；需要历史版本或其他段的记录时读完整快照 |
+| `patch` | 对当前状态应用`add／replace／remove／test`操作，序号加1、换新transaction_id，并从覆盖重算三个派生字段，再完整校验。`--output`只创建新文件，加`--commit`时按`commit`的同一流程替换权威状态。不能直接改序号、事务、版本、项目和派生字段 |
+| `receipt` | 从合法状态生成短回执。受阻时写“目标未完成”，返修锁时写“返修未完成”，不会写出状态没有记录的完成。`--delivered`列出本轮交付的多个单元（如BATCH_PREP），每个都要有DONE／REUSED步骤 |
 
 `--budget`可重复提供，每个文件须是单个预算对象；测试夹具中的`budgets.json`是数组，不能整体作为一个预算输入。未提供预算时结果中的`budgets_checked`为空，不能声称已检查预算内容。命令退出码0表示本次机械操作成功，1表示规则／数据检查失败，2表示读写或数据深度错误；规则失败包含问题代码及位置，读写或深度错误保留实际错误信息。
 
@@ -71,6 +80,22 @@ python -I scripts/storyboard_checks.py commit --state /absolute/project/run-stat
 `prompt_versions`按`formal_id + prompt_version`唯一，可保留历史版本。机器检查字段包括`budget_version`、`budget_status`、`budget_ref`、`status=DRAFT/DONE/INVALID`、`delivery_ref`和可选`adapters`。正文版本号与预算版本号不必相同。其他完整母稿、适配映射等仍按原规则保留。
 
 每次提交先重算前缀。F1 DONE、F2 INVALID、F3 DONE时前缀为1；修好F2且F3依赖仍有效后前缀为3，末态来源为F3，不再次提交F3覆盖。`derive`返回`end_state_source`，调用方须据此同步人物、环境、观看状态等内容；程序不自动改写这些创作记录。
+
+<a id="predecessor-gates"></a>
+### 前驱闸门与检查证据
+
+完整校验按当前目标核对下列机械前驱，`derive`和`summary`的派生计算不受影响：
+
+| 目标 | 需要的记录 |
+|---|---|
+| 资产单元 | PROJECT_BASELINE为DONE；目标是asset_queue中未完成的单元，asset_substage与单元种类一致；场景、道具单元之前人物已完成，道具之前场景已完成。SCENE_ASSETS时按needed_by的场次判断，并要求本集规划已完成 |
+| CHARACTER_ASSET_REVIEW／SCENE_PROP_ASSET_REVIEW | 对应种类没有未完成单元 |
+| EPxx_PLAN、COMPLETE | STRICT时资产步骤DONE且没有未完成单元；COMPLETE在两种策略下都不能留有未完成单元 |
+| 场分析、预算分段、FORMAL_n | 本集规划步骤DONE；预算需要本场分析步骤及scene_wide_status／prep_step；正式段需要本场分析与预算步骤、prep字段为DONE，且属于当前集场。STRICT要求资产完成，SCENE_ASSETS只要求本场needed_by的单元完成 |
+
+asset_queue每个单元为`{"id","kind":"CHARACTER|SCENE|PROP","status":"PENDING|IN_PROGRESS|DONE|REUSED|INVALID","order"}`，SCENE_ASSETS时另有`needed_by:["EPxx-SCxx"]`。DONE单元需要同名的DONE／REUSED步骤，REUSED单元可由对应的资产范围核对步骤证明；这两条在任何目标下都检查。INVALID表示该单元已作废，由新单元替代或不再需要，闸门不把它当作未完成；仍然需要时把它改回PENDING或另建单元。SCENE_ASSETS下准备资产时，episode_id、scene_id须是正在准备的那一场，单元的needed_by须包含该场。
+
+步骤记录与覆盖记录中的TEXT／INPUT／CAPABILITY／MEDIA，status取PENDING／PASS／FAIL／UNKNOWN／NOT_RUN／NOT_APPLICABLE／BLOCKED／INVALID；任何PASS都要有非空的evidence引用字符串，只写scope不算证据。
 
 ### 取消与阻断
 
@@ -115,6 +140,21 @@ python -I scripts/storyboard_checks.py commit --state /absolute/project/run-stat
 提交回执使用`committed`区分状态是否已替换：替换成功返回`ok=true`、`committed=true`、当前state_seq；清理正常时`cleanup_complete=true`、`warnings=[]`。替换后若关闭或删除锁失败，仍退出0并报告已提交，同时返回`cleanup_complete=false`及`CLEANUP_FAILED`告警，不能因清理告警重复提交或声称旧状态仍有效。替换前失败返回`ok=false`、`committed=false`及原始错误；同时发生的清理故障作为warnings附带，不覆盖原始原因。进程被强行结束也可能留下锁：先核实没有写入进程，人工处理后再重试，不自动抢锁。
 
 原子替换不是正文＋预算＋状态的多文件事务，不防范不遵守锁约定的外部写入，也不保证突然断电后的目录持久性。当前工具不提供完整事件日志重放；完整快照与历史版本仍是恢复依据。
+
+<a id="prompt-lint"></a>
+## 正文检查
+
+[prompt_lint.py](../scripts/prompt_lint.py)检查交给模型的文字，不判断剧情、摄影设计或模型效果：
+
+```bash
+python -I scripts/prompt_lint.py master --prompt /absolute/project/prompts/FORMAL_1/master-v1.md --state /absolute/project/run-state.json --budget /absolute/project/budgets/FORMAL_1.json --source /absolute/project/source/script.md --formal-id FORMAL_1
+python -I scripts/prompt_lint.py adapter --prompt /absolute/project/prompts/FORMAL_1/adapter-v1.md --state /absolute/project/run-state.json --source /absolute/project/source/script.md --formal-id FORMAL_1
+python -I scripts/prompt_lint.py asset --prompt /absolute/project/assets/characters/a-mother-v1.md --state /absolute/project/run-state.json
+```
+
+错误：残留方括号说明或模板边界、“同上”等简写、流程标题与状态键、缺少母稿栏目、镜头时间不连续或越界、总时长与末镜或预算不一致、【全片风格】与已确认文本不同、画幅缺失、角色锚定身高与档案不符、本段原台词缺失。警告：制作用语、过程否定、镜头内的世界方向、不属于本段原文的引号文字、未写性别的人物资产、动画项目中的写实措辞。原台词按`chain_registry[].source_lines`取原剧本的物理行号，原剧本中的台词要加引号（“”「」『』或英文双引号）；链没有source_lines或这些行里没有引号时报DIALOGUE_UNCHECKED，表示台词没有被检查。只覆盖部分的链提示人工按speech_id核对。引号内的台词不参与用语检查。适配稿按`镜头一（0–3秒）：`识别镜头；识别不到时报NO_SHOTS_PARSED，此时时间、方向和逐镜检查都没有执行。时间码只认写在行首或标点后、后接标点的区间，如“3–6秒，”；“持续1到2秒”这类时长不当作时间码。`--strict`把警告也作为失败。
+
+制作用语包括“前镜”“下一镜”这类指向另一镜头的说法（“镜子”“镜面”不算；“承接”只在后接“前／上／下／一段”时算指向，写“承接重量”不报）。重叠的词只报最长的一个，如“西南侧”不再同时报“西南”和“南侧”。【全片风格】与已确认风格逐字相同时，其中的用语不报警告，只列在`metrics.confirmed_style_terms`：母稿必须照抄已确认风格，改这些词属于风格修订，由用户决定后按依赖返修。词表只覆盖试点和模拟中出现过的写法，没有报警告不等于正文里没有制作用语。LOOK-1、STATE-BASE、CHAR-ZHOUWEN、EP01-SC02这类档案编号进入提示词报错误`RECORD_ID`：模型不知道编号代表什么，要写出它代表的妆造、状态或参考图承担的内容。新稿报错即改；旧项目已经交付、没有返修要求的正文不因升级自动改写，按7.3的`rechecks`记录复核结论并报告用户，用户要求返修时再改。检查记录同时写命令、包的MANIFEST哈希或版本与日期，便于解释同一文件在不同版本下结果不同。`STYLE_DRIFT_RISK`对资产提示词和母稿／适配稿都生效：动画项目里的“真实质感”“皮肤纹理”“毛孔”会把画面拉向写实；漂移词被“不添加”“不用”“没有”等否定动作支配时不算漂移（“不要失去真实质感”这类要求保留的说法仍然报）。scripts/下各命令的标准输出固定为UTF-8，`python -I`在Windows下用管道或重定向保存时也一样；在控制台查看乱码时把终端切到UTF-8。
 
 ## 验证与复跑
 

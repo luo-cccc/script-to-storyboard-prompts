@@ -20,7 +20,7 @@ next_required是唯一可推进的目标，不能写多个候选。每轮开始�
 
 状态必须可核验、可恢复，不能只存在于模型隐藏记忆。可靠项目文件能力下，先按用户指定位置或已明确的当前项目定位项目根目录，核对project_id、state_ref与source_script_ref的归属，再复用当前项目目录：保存一份当前权威状态、当前场次预算与分段记录、原剧本及各已交付Prompt有效版本。新文件项目优先使用标准JSON的run-state.json及[机械校验](validation.md)，沿用75个顶层字段；已有run-state.txt可继续使用，迁移时先核对实际内容，不把自由文本交给程序猜解析。两种格式只选一份作为当前权威状态，另一份只能是标明版本的展示或历史快照。保存或移交恢复材料时，确保本技能包的[技能入口及读取路由](../SKILL.md)、本轮适用参考文件与上述项目数据一并可读取。技能目录保存规则和模板，项目根目录保存材料与当前权威状态；运行数据文件不属于技能参考库。已有项目沿用实际文件位置，不强制搬迁，不能把技能目录或规范文件所在位置当成剧本项目目录。规则链接按所在文件解析，项目材料路径按已定位的项目根目录或既有可定位引用解析。历史快照可以归档，但不得与当前状态混用。
 
-保存时使用同一state_seq／transaction_id关联状态、预算、正文和覆盖版本；先校验候选快照，再核对预期旧state_seq、临时写入并读回关键字段，最后原子替换当前状态。并发写入必须另有排他锁，单文件原子替换不等于多文件事务；正文和预算先保存为不可混淆的版本，核对可访问后再提交状态引用。替换前失败则保留上一个有效状态和未提交候选，转会话交付完整必要状态，不声称保存成功或自动推进。已替换但后续锁清理失败时，按committed及state_seq如实报告已保存并附清理告警，核对当前文件后处理遗留锁，不重复提交。程序的机械检查不能替代正文语义与交付证据核验。
+保存时使用同一state_seq／transaction_id关联状态、预算、正文和覆盖版本；先校验候选快照，再核对预期旧state_seq、临时写入并读回关键字段，最后原子替换当前状态。并发写入必须另有排他锁，单文件原子替换不等于多文件事务；正文和预算先保存为不可混淆的版本，核对可访问后再提交状态引用。替换前失败则保留上一个有效状态和未提交候选，转会话交付完整必要状态，不声称保存成功或自动推进。校验工具拒绝提交时按替换前失败处理，即使判断是工具误报也不绕过校验手工替换；保存候选和工具输出，向用户说明。已替换但后续锁清理失败时，按committed及state_seq如实报告已保存并附清理告警，核对当前文件后处理遗留锁，不重复提交。程序的机械检查不能替代正文语义与交付证据核验。
 
 FILE模式的母稿正文文件只含[5.1](video-template.md#s5-1)内容；存在适配稿时另存干净提交文本及必要参数／输入说明，版本映射、能力证据、预算和媒体观察仍保存在运行记录中。给出各份用途与最短状态回执，避免把母稿与适配稿连续当作一份提交。CHAT模式分别标明可复制范围，在其后另起【运行状态 不属于视频提示词】，提供完整必要状态及当前覆盖、预算、首尾记录。纯正文展示不等于删除状态。
 
@@ -47,7 +47,7 @@ production_settings_status=[UNSET／WAIT_CONFIRM／CONFIRMED]
 production_settings=[video_aspect_ratio、visual_style、segment_max_s逐项记录recommended、selected、status=PENDING／CONFIRMED、decision_ref；未选selected=UNSET]
 video_aspect_ratio=[用户确认的视频画幅，未确认UNSET]
 visual_style=[用户确认的全片风格正文全文、媒介及色光／成像／材质／观看原则、条件变化与适用范围、版本及decision_ref；不只存方案名称，未确认UNSET]
-source_script_ref=[原剧本可定位位置与版本，无文件时会话位置及实际原文范围]
+source_script_ref=[原剧本可定位位置与版本，无文件时会话位置及实际原文范围；剧本改版后，旧版本只在其事件链已全部交付时登记在previous_versions]
 visual_reference_status=[UNSET／IMAGE_READY／TEXT_READY]
 visual_reference=[真实图像来源与版本、已读取解析位置、职责、允许继承与禁止继承、用途、平台实际可用状态；无图时NONE]
 visual_baseline=[与visual_style对应的完整文字视觉依据及版本；有真实图片时附来源、已读解析和指定用途，不将分析图片等同于平台绑定]
@@ -58,7 +58,7 @@ character_asset_status=[UNSET／RUNNING／DONE]
 scene_asset_status=[UNSET／RUNNING／DONE]
 prop_asset_status=[UNSET／RUNNING／DONE]
 scene_prop_asset_status=[UNSET／RUNNING／DONE]
-asset_queue=[按[第二步](../SKILL.md)CHARACTER与[第三步](../SKILL.md)SCENE、PROP分队列记录实际单元、版本、顺序及完成情况；人物每单元含母图和四视图两份必要交付证据，素材职责与状态引用所属资产记录]
+asset_queue=[按[第二步](../SKILL.md)CHARACTER与[第三步](../SKILL.md)SCENE、PROP分队列记录实际单元；每单元含id、kind=CHARACTER／SCENE／PROP、status=PENDING／IN_PROGRESS／DONE／REUSED／INVALID、order，SCENE_ASSETS时加needed_by=[EPxx-SCxx]；人物每单元含母图和四视图两份必要交付证据，素材职责与状态引用所属资产记录]
 character_assets=[逐人物ID母图与对应四视图的成套交付证据、各LOOK／STATE版本、适用集场时点、完整提示词位置、确认情况、实际图片和平台提供状态；首次只有母图不能标该人物DONE]
 character_profiles=[逐角色身份与年龄、height_cm、体型比例、height_basis=用户设定／剧本事实／已采用的设计补充、来源与版本；母图、四视图、视频锚定共用，不从图片反推实测值]
 scene_assets=[场景母图MASTER的版本、适用范围、交付或复用依据、实际图片与平台提供状态；场景变化继续由environment_state记录，不建立其他场景图种的生成任务]
@@ -76,7 +76,7 @@ last_output=[最近实际交付目标或STATE_RECOVERY／REVISION_FORMAL_n／REI
 next_required=[PROJECT_BASELINE／具体资产ID／CHARACTER_ASSET_REVIEW／SCENE_PROP_ASSET_REVIEW／EPxx_PLAN／EPxx-SCxx_ANALYSIS／EPxx-SCxx_BUDGET_SEGMENT／FORMAL_n／WAIT_USER／COMPLETE中的唯一实际目标；场次目标带集号，旧简称只在所属集唯一时归一化]
 script_cursor=[END或{source_version;chain_id;anchor_id}，指向下一未覆盖源内锚点／动作相位；链内可用稳定A01等锚点，不只允许START，见7.4]
 next_chain_unstarted=[兼容字段名；派生为script_cursor.chain_id或END，含已开始但尚未完成的链，不再表示该链必须完全未开始]
-chain_registry=[按原文顺序的稳定链id、source_version、episode_id、scene_id及有序anchors；每个锚点含id、source_anchor、action_phase，至少START和END；已使用的ID不改号]
+chain_registry=[按原文顺序的稳定链id、source_version、episode_id、scene_id、source_lines（该链在原剧本中的物理行号，用于原台词核对）及有序anchors；每个锚点含id、source_anchor、action_phase，至少START和END；已使用的ID不改号]
 coverage_ledger=[各正式段的完整覆盖记录，格式见[7.4](state-and-revision.md#s7-4)]
 prompt_versions=[各正式段母稿与可选模型提交适配稿的版本、可定位正文、有效性、交付证据及关联预算／能力核验版本；适配稿与母稿共用formal_id，不重复覆盖]
 segment_max_s=[[第一步](../SKILL.md)用户确认的单段时长上限及decision_ref，未确认UNSET；与production_settings对应值一致]
@@ -95,11 +95,11 @@ ongoing_effects_state=[技能、束缚、变身阶段、持续声源及相位，
 voice_profile=[各角色实际声线依据、已提供声音素材及版本，不虚构试听或绑定]
 prop_ledger=[既有、新增、转交、遗失、损坏与移除道具及事件时点]
 last_frame_snapshot=[最近有效文字段的预期末态及版本；有实际媒体时另附media_ref、实际时码／帧及是否验收通过，二者不混写，文字记录不冒称真实生成帧]
-execution_mode=REVIEW
-step_policy=STRICT
+execution_mode=[默认REVIEW；用户明确选择后可为BATCH_PREP，见7.10]
+step_policy=[默认STRICT；用户明确选择后可为SCENE_ASSETS，见7.10]
 performance_mode=[沿用用户NORMAL／PRECISE设置，无要求时NORMAL]
 awaiting_continue=[true／false]
-step_ledger=[每个已开始单元的status=IN_PROGRESS／DONE／REUSED／INVALID／CANCELLED，交付位置与版本、决定依据；CANCELLED只关闭明确撤销的可选事项，不满足必做前驱；checks分别以status、scope、evidence记录TEXT、INPUT、CAPABILITY、MEDIA的实际结论、范围与证据；每项PASS均附本项实际核对材料或检查记录的可定位引用，不只写“已读／已核对”，不以一个PASS代替四类检查。按[7.9](state-and-revision.md#s7-9)在所属单元内保存media_observations和实际generation记录；未执行媒体检查记NOT_RUN，未开始单元不得预填DONE]
+step_ledger=[每个已开始单元的status=IN_PROGRESS／DONE／REUSED／INVALID／CANCELLED，交付位置与版本、决定依据；复核旧资产或旧检查时在该单元内记rechecks（about文件与哈希、finding、evidence、effect、status=OPEN／REPORTED_TO_USER／ACCEPTED／REVISE、at_state_seq），它不是新的DONE或PASS，也不改变原单元结论；CANCELLED只关闭明确撤销的可选事项，不满足必做前驱；checks分别以status=PENDING／PASS／FAIL／UNKNOWN／NOT_RUN／NOT_APPLICABLE／BLOCKED／INVALID、scope、evidence记录TEXT、INPUT、CAPABILITY、MEDIA的实际结论、范围与证据；每项PASS均附本项实际核对材料或检查记录的可定位引用，不只写“已读／已核对”，不以一个PASS代替四类检查。按[7.9](state-and-revision.md#s7-9)在所属单元内保存media_observations和实际generation记录；未执行媒体检查记NOT_RUN，未开始单元不得预填DONE]
 blocking_items=[NONE或数组；每项记录step_id、phase、具体缺口、阻断范围及关联request_id（有独立请求时）；只有阻断当前目标或其实际依赖的事项才使本轮WAIT_USER，其他事项保留但不扩大阻断]
 edit_lock=[NONE或当前返修目标ID]
 edit_context=[返修前phase、next_required、last_completed_formal、script_cursor、旧版本、修改范围；源于媒体反馈时附观察记录、时码证据、归责判断及本次主要改动，检查后恢复原目标]
@@ -140,9 +140,9 @@ last_completed_formal表示从FORMAL_1起连续有效的前缀，不取历史最
 
 新项目：phase=PROJECT_SETUP、project_status=IN_PROGRESS、project_analysis_status=IN_PROGRESS、production_settings_status=UNSET、next_required=PROJECT_BASELINE、last_completed_formal=0、awaiting_continue=false。分析交付后project_analysis_status=DONE；只要三项条件仍有PENDING，就置production_settings_status=WAIT_CONFIRM、next_required=WAIT_USER、blocking_items.step_id=PROJECT_BASELINE并列未确认项，project_status保持IN_PROGRESS，不进入资产。
 
-用户确认：逐项保存selected和decision_ref；部分回答只清除相应缺口，继续询问剩余。三项CONFIRMED且依据可用后project_status=DONE、production_settings_status=CONFIRMED，PROJECT_BASELINE记录DONE或有证据的REUSED，清空已解决的blocking_items；phase=ASSET_RUNNING、asset_status=RUNNING、asset_substage=CHARACTER、character_asset_status=RUNNING，只设置[第二步](../SKILL.md)首个人物单元或CHARACTER_ASSET_REVIEW，awaiting_continue=true并停止，不在同轮夹带母图。
+用户确认：逐项保存selected和decision_ref；部分回答只清除相应缺口，继续询问剩余。三项CONFIRMED且依据可用后project_status=DONE、production_settings_status=CONFIRMED，PROJECT_BASELINE记录DONE或有证据的REUSED，清空已解决的blocking_items；phase=ASSET_RUNNING、asset_status=RUNNING、asset_substage=CHARACTER、character_asset_status=RUNNING，只设置[第二步](../SKILL.md)首个人物单元或CHARACTER_ASSET_REVIEW（step_policy=SCENE_ASSETS时改为phase=EPISODE_PLANNING、next_required=当前EPxx_PLAN，见[7.10](state-and-revision.md#s7-10)），awaiting_continue=true并停止，不在同轮夹带母图。
 
-[第二步](../SKILL.md)人物单元：核验三项已确认与项目前驱→同轮交付母图和四视图及本次必要版本→按两份实际交付证据记录character_assets和step_ledger→仅设置下一人物。人物全部完成或范围核对有据后character_asset_status=DONE、scene_prop_asset_status=RUNNING，next_required指向[第三步](../SKILL.md)首个待交付场景；无场景缺项时按实际证据转首个道具，全部复用或无新增时指向SCENE_PROP_ASSET_REVIEW，asset_substage随实际目标设SCENE或PROP；不在最后一个人物轮附场景或道具。
+[第二步](../SKILL.md)人物单元：核验三项已确认与项目前驱→同轮交付母图和四视图及本次必要版本→按两份实际交付证据记录character_assets和step_ledger→仅设置下一人物。人物全部完成或范围核对有据后character_asset_status=DONE、scene_prop_asset_status=RUNNING，scene_asset_status或prop_asset_status在next_required首次指向该类单元时设为RUNNING，next_required指向[第三步](../SKILL.md)首个待交付场景；无场景缺项时按实际证据转首个道具，全部复用或无新增时指向SCENE_PROP_ASSET_REVIEW，asset_substage随实际目标设SCENE或PROP；不在最后一个人物轮附场景或道具。
 
 [第三步](../SKILL.md)场景道具：先SCENE队列再PROP队列，每轮一个实际单元。场景全部完成后scene_asset_status=DONE、asset_substage=PROP；道具全部完成后prop_asset_status=DONE、scene_prop_asset_status=DONE。没有某类需求时保留实际范围核对证据，不伪造资产。全部复用或无新增时在本步交付SCENE_PROP_ASSET_REVIEW。只有人物与场景道具两步均完成才asset_status=DONE、asset_substage=COMPLETE、phase=EPISODE_PLANNING、next_required=当前EPxx_PLAN，等待继续。
 
@@ -152,7 +152,7 @@ last_completed_formal表示从FORMAL_1起连续有效的前缀，不取历史最
 
 预算分段完成：预算、分段和首尾记录均有可定位证据，且无阻断本轮预算／分段目标的未决事项，prep_step=DONE、prep_status=DONE、phase=FORMAL_RUNNING、next_required=FORMAL_(last_completed_formal+1)。平台适配或媒体任务的独立缺口按[5.2](model-adaptation.md#s5-2)、[7.9](state-and-revision.md#s7-9)记录，不自动阻断已满足条件的文字预算。
 
-所有以上完成转换都设置awaiting_continue=true并结束本轮，不推进script_cursor或正式段号。
+所有以上完成转换都设置awaiting_continue=true并结束本轮，不推进script_cursor或正式段号；execution_mode=BATCH_PREP时按[7.10](state-and-revision.md#s7-10)在同一轮继续下一个准备单元。
 
 新正式段交付前核验：target=next_required；n=last_completed_formal+1；覆盖起点=script_cursor；项目分析、三项制作条件确认、人物资产、场景道具资产、本集规划、本场分析与预算前驱有DONE／REUSED证据；无未完成返修锁，且blocking_items中没有阻断本轮交付及其实际前驱的缺口；有效段界、当前目标所需素材和文字起态可恢复。只检查本轮依赖范围：通用母稿不以已出图、已上传或媒体PASS为前驱；指定模型提交稿的必要输入和能力按[5.2](model-adaptation.md#s5-2)核验，不越过其真实阻断。
 
@@ -160,7 +160,7 @@ last_completed_formal表示从FORMAL_1起连续有效的前缀，不取历史最
 
 随后从重算后的前缀、实际集场和有效前驱只设置一个下一目标并同步phase：尚有失效分析或预算时先指最早受影响前置；同场未完且前置有效→phase=FORMAL_RUNNING、next_required=FORMAL_(last_completed_formal+1)；同集下一场→phase=SCENE_PREP、next_required=其EPxx-SCxx_ANALYSIS并重置当前场prep字段；下一集→phase=EPISODE_PLANNING、next_required=其EPxx_PLAN。已有效的集规划或场前置按证据复用，不因修洞重复交付。全部已知制作范围完成且无阻断当前完成条件的事项时，phase=COMPLETE、next_required=COMPLETE、script_cursor=END、next_chain_unstarted=END、awaiting_continue=false；未全部结束则awaiting_continue=true。返修锁和实际阻断优先，不能用END游标绕过未闭合事项。
 
-用户说“继续”：读最新状态及前驱证据→检查返修锁与阻断→锁定本轮唯一target→awaiting_continue=false→完成当前单元或记录真实缺口→保存与交付更新状态→停止，不在本轮循环执行新next_required。
+用户说“继续”：读最新状态及前驱证据→检查返修锁与阻断→锁定本轮唯一target→awaiting_continue=false→完成当前单元或记录真实缺口→保存与交付更新状态→停止，不在本轮循环执行新next_required。execution_mode=BATCH_PREP时，准备单元按[7.10](state-and-revision.md#s7-10)重复上述步骤直到停止条件。
 
 WAIT_USER时补材料或决定仅闭合原步骤。仍缺内容保持IN_PROGRESS；齐备后只清除该事项已解决的阻断，重新核对其他实际依赖，恢复保存目标或设置下一目标和等待状态。“确认并继续”不自动同轮追加下一个生产单元。已确认同项不再次请求确认。
 
@@ -181,7 +181,7 @@ WAIT_USER时补材料或决定仅闭合原步骤。仍缺内容保持IN_PROGRESS
 
 按[7.4](state-and-revision.md#s7-4)重算最后连续有效正式段，script_cursor回到其后的第一未覆盖锚点，可在链内。被修目标如已完整修订、检查并交付，可替换该formal_id的当前覆盖；随后继续扫描并吸收仍有效、范围相接且依赖未变的后续段。受影响后续仍保持INVALID，不自动重发；目标本身未完成时不得算有效前缀。例如F1 DONE、F2 INVALID、F3 DONE，修复F2后若F3仍有效，前缀应恢复为3，下一目标不得再次指向F3。
 
-覆盖边界变化需重排分段时，next_required指向最早受影响的EPxx-SCxx_BUDGET_SEGMENT；事实或空间分析也失效时先回对应EPxx-SCxx_ANALYSIS。上游仍有效且仅需重做后续正文时指向第一个失效FORMAL_n。这只是设置目标，不在本轮执行它。
+覆盖边界变化需重排分段时，next_required指向最早受影响的EPxx-SCxx_BUDGET_SEGMENT；事实或空间分析也失效时先回对应EPxx-SCxx_ANALYSIS。上游仍有效且仅需重做后续正文时指向第一个失效FORMAL_n。这只是设置目标，不在本轮执行它。目标回到较早场次时，episode_id、scene_id和prep_scene改为该场，prep_step、prep_status按该场已完成的分析与预算设为DONE；后续场次已完成的分析、预算记录保留在step_ledger，回到那一场时按证据复用，不重做。
 
 修改取景、切点或声音即使未改人物物理末态，也要核对是否改变观众实际看见的证据与揭示时机；若后续依赖该信息，按实际依赖更新viewing_state并使受影响后续失效，不让漏看或提前看见的信息仍冒充原版本。
 
@@ -210,6 +210,8 @@ WAIT_USER时补材料或决定仅闭合原步骤。仍缺内容保持IN_PROGRESS
 
 <a id="s7-8"></a>
 ## 7.8 旧版迁移与一致性闸门
+
+技能包0.5.0沿用状态1.9和V4，没有新增顶层字段，但机械校验收紧：每个步骤与覆盖记录中的PASS都要有本项证据引用；当前目标的前驱步骤与资产单元要有DONE／REUSED记录。0.4.1及更早的快照若有PASS只写scope、没有evidence，校验会报CHECK_EVIDENCE；迁移时为这些项补上可定位的证据，或改为UNKNOWN并写明原因，不把旧PASS原样保留。其中INPUT=PASS实际只是读原文、步骤没有素材或参数的，可把读原文的证据归TEXT、INPUT改为NOT_APPLICABLE并写明原因。补证据属于状态恢复：先备份旧快照，经patch／commit提交，记录recovery_evidence、last_output=STATE_RECOVERY并停止，本轮不交原目标，下一条“继续”再交。已通过校验、每项PASS的evidence都实际核对支持本项结论的状态不再迁移，也不因四类检查的说明变化改写旧记录，直接按当前目标继续；新记录按新说明写。可定位不等于证据成立：evidence指向的材料存在但支持不了该结论，属于事实错误，不属于“说明变化”，应补证或改UNKNOWN并记录recovery_evidence；0.4.1及更早、尚未迁移过的快照按本段第一句处理。“本段为独立生成单元”改名为“开场状态与本段范围”，属于栏目名称变化，不使历史正文失效。
 
 本版v1.9保留75个顶层字段，将workflow_schema更新为SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4：游标改为源版本＋链＋锚点，覆盖采用半开区间，next_chain_unstarted作为游标链ID的兼容投影；提交统一重算连续前缀；适配增加请求生命周期和明确取消分支；母稿时间统一为段时钟。新旧状态不能只改版本号混用。
 
@@ -279,3 +281,11 @@ generation={task_id;provider;model_and_mode;submitted_at;input_snapshot;provider
 input_snapshot至少关联实际提交文本、参数、引用素材及其职责与版本；工具能提供摘要或哈希时可附，不假装已保存二进制。任务ID只抄真实返回值，上传、排队、生成成功、收集结果与检查通过分项记录，生成成功不等于验收通过。
 
 恢复先核对真实任务状态和既有结果：已完成未取回时收集原结果，运行中保留任务关联，失败或未知时保存实际返回和缺口。没有可用接口或权限时说明不能核验，不虚构audit、collect命令或平台工具。会话中断、没有本地文件或旧链接失效都不足以证明任务从未提交，不能据此盲目重新收费投递。重投需要已有明确授权覆盖该任务与费用，或由用户作出新决定。任务恢复不新增剧情覆盖，不改变未受影响的文字游标，也不自动取消未完成返修锁。
+
+<a id="s7-10"></a>
+## 7.10 可选执行策略
+
+两项策略默认关闭，只在用户明确选择后启用，并在project_decisions记录决定依据与适用范围。三项确认、完整模板、整场预算、覆盖规则和正式段逐段交付都不变。程序校验按当前策略检查前驱。
+
+- step_policy=SCENE_ASSETS（按场准备资产）：PROJECT_BASELINE完成后先做EPxx_PLAN，再在每场分析之前只准备该场需要的人物、场景和道具；asset_queue每个单元写needed_by（需要它的全部场次）。准备某一场的资产时，episode_id、scene_id设为这一场；一个单元被多场需要时，在第一场需要它之前完成，后续场次复用。场内仍是人物在前，场景在前于道具；人物首次交付仍是母图加四视图成套。一场的正式段全部完成后，若下一场还有未完成的资产单元，next_required指向其中第一个（phase=ASSET_RUNNING），全部完成后才进入该场分析。代价是开工前看不到全部角色，后设计的人物可能与先前的视觉风格不协调，需要时按7.6返修。
+- execution_mode=BATCH_PREP（连续准备）：一轮内可以连续完成多个准备单元，包括人物、场景、道具、集规划、场分析和预算分段。每完成一个单元就保存状态、交付和证据，再继续下一个单元。遇到PROJECT_BASELINE确认、WAIT_USER、返修锁、需要用户决定的事项或回复长度接近上限时停止。正式段仍每轮一段。到达正式段或停止点时设置awaiting_continue=true。

@@ -2,7 +2,7 @@
 
 将中文剧本、剧情或动作笔记整理为项目分析、人物场景道具图片提示词、集场规划、整场时长预算与分段，以及逐段视频提示词。
 
-技能标识：`script-to-storyboard-prompts`。技能包版本：**0.4.1**，当前规则与项目状态版本：**1.9**；原始单文本v1.8继续作为历史基线保存。
+技能标识：`script-to-storyboard-prompts`。技能包版本：**0.5.0**，当前规则与项目状态版本：**1.9**；原始单文本v1.8继续作为历史基线保存。
 
 ## 使用入口
 
@@ -16,20 +16,18 @@
 | [架构与维护](docs/剧本转分镜提示词-技能化方案.md) | 文件归属、路径、状态版本和维护约束 |
 | [单文本规范 v1.8](specs/script-to-storyboard-prompts-v1.8.txt) | 原始迁移基线，也可独立复制或上传给模型使用 |
 | [资源对比研究](docs/分镜资源对比研究-2026-11-03.md) | 17 个 GitHub 项目及官方、教学资料比较，保留 v1.7 历史比较基线 |
+| [媒体试点报告](docs/0.5.0-媒体试点报告.md) | 0.5.0真实生图与视频测试的条件、结果、规则修订和未验证范围 |
+| [格式范例](references/examples.md) | 人物母图、视频首帧图和两镜母稿的完整写法 |
 
 ## 安装
 
-将 `SKILL.md`、`references/`、`scripts/` 和 `evals/` 一起复制到支持技能的客户端目录，保留这一层目录名：
+用打包脚本生成安装副本。它只复制运行文件（`SKILL.md`、`references/`、`scripts/storyboard_checks.py`、`scripts/prompt_lint.py`、`evals/scenarios.md`、`evals/fixtures/`），写入哈希清单 `MANIFEST.json`，目标目录不为空时拒绝写入：
 
-```text
-~/.agents/skills/script-to-storyboard-prompts/
-├── SKILL.md
-├── references/
-├── scripts/
-└── evals/
+```bash
+python -I scripts/build_package.py --output ~/.agents/skills/script-to-storyboard-prompts
 ```
 
-仓库根目录本身就是技能包。维护者建议复制完整仓库，保留 `tests/` 以复跑回归；`docs/`、`specs/` 和 README 是说明资料，不是正常文字制作的必读前驱。校验工具只用Python 3.10+标准库；没有Python的客户端仍可按规则进行文字核对，并如实标记程序检查未执行。
+不要直接复制整个 `evals/`：其中的 `runs/` 是约10 MB的历史验收与试点记录，运行时不需要。手动复制时只复制上面列出的文件，并保留这一层目录名。维护者在完整仓库中复跑回归；`docs/`、`specs/`、`tests/` 和 README 是说明与维护资料，不是正常文字制作的必读前驱。校验工具只用Python 3.10+标准库；没有Python的客户端仍可按规则进行文字核对，并如实标记程序检查未执行。
 
 ZCode 支持用户级 `~/.agents/skills/`。安装后在新会话中从“设置 → Skills”或输入框 `/` 菜单确认发现情况。已有同名目录时先比较，不直接覆盖；用户 `.zcode/skills/` 中的同名技能可能优先加载。其他客户端的目录、刷新和调用语法以该客户端说明为准。
 
@@ -89,20 +87,27 @@ ZCode 支持用户级 `~/.agents/skills/`。安装后在新会话中从“设置
 │   ├── timing.md
 │   ├── state-and-revision.md
 │   ├── camera-reference.md
-│   └── validation.md
+│   ├── validation.md
+│   └── examples.md
 ├── scripts/
+│   ├── storyboard_checks.py
+│   ├── prompt_lint.py
+│   ├── build_package.py
 │   ├── check_package.py
-│   ├── run_checks.py
-│   └── storyboard_checks.py
+│   └── run_checks.py
 ├── tests/
-│   └── test_state_budget.py
+│   ├── test_state_budget.py
+│   └── test_gates_and_tools.py
 ├── evals/
 │   ├── scenarios.md
 │   ├── fixtures/state-budget/
+│   ├── media-pilot/
 │   └── runs/
 ├── docs/
 │   ├── 剧本转分镜提示词-技能化方案.md
 │   ├── 技能包实施与验收记录.md
+│   ├── 0.4.1-用户模拟审查报告.md
+│   ├── 0.5.0-媒体试点报告.md
 │   └── 分镜资源对比研究-2026-11-03.md
 └── specs/
     └── script-to-storyboard-prompts-v1.8.txt
@@ -136,15 +141,21 @@ python -I scripts/storyboard_checks.py check --state /absolute/project/run-state
 python -I scripts/storyboard_checks.py derive --state /absolute/project/run-state.json
 ```
 
-`check`、`derive`和`cancel`不覆写权威状态；`cancel`生成有明确决定依据的候选，只有显式`commit`才写回。旧自由文本状态不由程序自动解析或迁移。
+`check`、`derive`、`summary`、`receipt`和`cancel`不覆写权威状态；`cancel`和`patch`生成候选，只有显式`commit`（或`patch --commit`）才写回。`init`建立新项目状态。旧自由文本状态不由程序自动解析或迁移。
+
+检查交给模型的正文：
+
+```bash
+python -I scripts/prompt_lint.py master --prompt /absolute/project/prompts/FORMAL_1/master-v1.md --state /absolute/project/run-state.json --source /absolute/project/source/script.md --formal-id FORMAL_1
+```
 
 ## 验证说明
 
 当前保持**分范围验收**：包结构和确定性回归使用上述命令；模型文字行为、客户端发现与触发、真实媒体另行验证。0.1.0／0.2.0历史测试与失败完整保留，不能因本版修订追溯改成通过。当前版本运行结果及限制见[实施与验收记录](docs/技能包实施与验收记录.md)。
 
-`evals/scenarios.md`提供70个人工行为用例（含10个转场用例）；`evals/fixtures/state-budget/`提供可移植的确定性回归数据。程序通过不自动将人工用例记为通过。新会话发现与自动触发、完整端到端制作和真实媒体效果尚未全面验证。
+`evals/scenarios.md`提供80个人工行为用例（含10个转场用例和10个0.5.0用例）及规则覆盖索引；`evals/fixtures/state-budget/`提供可移植的确定性回归数据。程序通过不自动将人工用例记为通过。新会话发现与自动触发、完整端到端制作尚未验证。
 
-0.4.1已完成部分手动加载的用户模拟与独立判读，并定点补强PASS证据引用和受阻回执提示。原失败、复测及范围限制见[用户模拟审查报告](docs/0.4.1-用户模拟审查报告.md)；这些样例不代表70例全通过或真实媒体已验收。
+0.4.1已完成部分手动加载的用户模拟与独立判读，见[用户模拟审查报告](docs/0.4.1-用户模拟审查报告.md)。0.5.0做了第一次真实媒体试点（gpt-image-2-ext生图15个任务、wan3.0-video视频6段），结论与证据范围见[媒体试点报告](docs/0.5.0-媒体试点报告.md)；试点只有一个样例，不代表其他模型或题材同样成立。
 
 本仓库保留 v1.8 源规范的原始字节，其 SHA-256 为：
 

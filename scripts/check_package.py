@@ -7,24 +7,26 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import sys
 from urllib.parse import unquote, urlsplit
 
 
-PACKAGE_VERSION = "0.4.1"
+PACKAGE_VERSION = "0.5.0"
 STATE_VERSION = "1.9"
 WORKFLOW_SCHEMA = "SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4"
 SOURCE_SHA256 = "ed1d533c3019d7048a602887b523967d2312dd2cc6a23fe9ac8891bf91d5defe"
 EXPECTED_CASES = {f"G{group:02d}-{case:02d}" for group, count in enumerate(
-    [4, 2, 4, 1, 5, 2, 3, 7, 4, 4, 9, 7, 10], 1
+    [4, 2, 4, 1, 5, 2, 3, 7, 4, 4, 9, 7, 10, 10], 1
 ) for case in range(1, count + 1)} | {f"T{group:02d}-{case:02d}" for group in range(1, 5) for case in range(1, 3)}
 REQUIRED = (
     "SKILL.md", "README.md", "references/asset-templates.md",
     "references/camera-reference.md", "references/model-adaptation.md",
     "references/shot-writing.md", "references/state-and-revision.md",
     "references/timing.md", "references/video-template.md", "references/validation.md",
-    "references/transitions.md",
-    "scripts/storyboard_checks.py", "tests/test_state_budget.py",
-    "evals/scenarios.md", "evals/fixtures/state-budget",
+    "references/transitions.md", "references/examples.md",
+    "scripts/storyboard_checks.py", "scripts/prompt_lint.py", "scripts/build_package.py",
+    "tests/test_state_budget.py", "tests/test_gates_and_tools.py",
+    "evals/scenarios.md", "evals/fixtures/state-budget", "evals/media-pilot/apimart_pilot.py",
     "specs/script-to-storyboard-prompts-v1.8.txt",
 )
 
@@ -119,6 +121,16 @@ def check_package(root: Path) -> dict:
         for label in ["前置条件", "用户输入", "应读资料", "预期交付", "允许状态变化", "禁止状态变化", "方法", "实际结果"]:
             if f"- {label}：" not in match.group(2):
                 errors.append(f"{match.group(1)} lacks {label}")
+    rules = re.findall(r"^\|\s*(R\d{2})\s*\|[^|\n]*\|([^|\n]*)\|", cases_text, re.M)
+    if not rules:
+        errors.append("Rule coverage index is missing from evals/scenarios.md")
+    for rule, cell in rules:
+        listed = re.findall(r"(?:G|T)\d{2}-\d{2}", cell)
+        if not listed:
+            errors.append(f"Rule {rule} lists no case")
+        for case in listed:
+            if case not in EXPECTED_CASES:
+                errors.append(f"Rule {rule} lists unknown case {case}")
     camera = documents.get(root / "references/camera-reference.md", "")
     if "all parallel lines converge to central vanishing point" in camera:
         errors.append("Obsolete one-point perspective definition remains")
@@ -138,6 +150,7 @@ def check_package(root: Path) -> dict:
         "anchor_references": anchor_count,
         "state_fields": field_count,
         "human_case_count": len(cases),
+        "rule_count": len(rules),
         "errors": errors,
         "runtime_sha256": hashes,
     }
@@ -147,6 +160,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     args = parser.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     try:
         report = check_package(args.root)
     except (OSError, UnicodeError, ValueError) as exc:

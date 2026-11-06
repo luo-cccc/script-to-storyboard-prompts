@@ -20,3 +20,8 @@ Desktop.ini
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# Generated pilot media and unredacted task records (sanitized records, prompts and analysis stay tracked)
+evals/runs/*/media/
+evals/runs/*/analysis/frames/
+evals/runs/*/records-raw/

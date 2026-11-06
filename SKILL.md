@@ -11,7 +11,7 @@ description: >
 
 # 剧本转分镜提示词
 
-技能包版本：0.4.1。当前规则与项目状态版本：1.9；`workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4`。原始单文本v1.8保留为历史迁移基线。
+技能包版本：0.5.0。当前规则与项目状态版本：1.9；`workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4`。原始单文本v1.8保留为历史迁移基线。
 
 将中文剧本、剧情或动作笔记依次整理成项目分析、完整资产图片提示词、集场分析、预算分段及完整视频母稿。用户指定模型和模式后，按[模型提交适配](references/model-adaptation.md#s5-2)从同版母稿派生提交稿，核对真实输入与能力限制。
 
@@ -33,12 +33,14 @@ description: >
 | 本轮目标 | 补充规则 | 项目材料与交付重点 |
 |---|---|---|
 | PROJECT_BASELINE | [风格写法](references/shot-writing.md#s3-8)、[摄影资料](references/camera-reference.md)中相关光线、色彩、成像与构图；有参考素材时读[素材职责](references/asset-templates.md) | 通读原剧本，完整分析后提出 2～3 个风格正文和三项选择，保存已确认与待确认项 |
-| 人物资产 | [素材职责与完整模板](references/asset-templates.md)、[风格写法](references/shot-writing.md#s3-8) | 人物档案、身高来源、造型状态及复用证据；首次母图与四视图同轮成套 |
+| 人物资产 | [素材职责与完整模板](references/asset-templates.md)、[风格写法](references/shot-writing.md#s3-8)、需要时看[格式范例](references/examples.md) | 人物档案、身高来源、造型状态及复用证据；首次母图与四视图同轮成套 |
 | 场景与道具 | [对应完整模板](references/asset-templates.md)、[风格与光照](references/shot-writing.md#s3-8) | 场景空间、真实光源、道具结构及状态；先场景后道具，逐项交付 |
 | EPxx_PLAN | 本入口第四步、[增量与返回](references/state-and-revision.md#s7-5)，有缺项时读资产模板 | 当前集原文、稳定事件链、资产队列和造型版本；保存 return_to，补齐后返回 |
 | EPxx-SCxx_ANALYSIS | [观看任务、空间与连续性](references/shot-writing.md) | 当前场完整原文、人物空间事实、原台词、有效前场末态及观看信息；分析完成后才预算 |
 | EPxx-SCxx_BUDGET_SEGMENT | [时长与分段](references/timing.md)，涉及平台限制时读[模型适配](references/model-adaptation.md#s5-2) | 有效场分析、原文链、话轮卡、已确认上限、顺序并行依据及首尾承接 |
-| FORMAL_n | [镜头写法](references/shot-writing.md)、[完整母稿](references/video-template.md#s5-1)、[时长复算](references/timing.md)、[相关摄影条目](references/camera-reference.md) | 本段原文、有效资产、场分析、预算、实际文字起态及前驱证据；交稿后按正文复算 |
+| FORMAL_n | [镜头写法](references/shot-writing.md)及[可执行的措辞](references/shot-writing.md#s3-9)、[完整母稿](references/video-template.md#s5-1)及[格式范例](references/examples.md)、[时长复算](references/timing.md)、[相关摄影条目](references/camera-reference.md) | 本段原文、有效资产、场分析、预算、实际文字起态及前驱证据；交稿后按正文复算 |
+| 视频首尾帧图 | [I 模板](references/asset-templates.md#asset-i)、[帧链与分镜生成](references/model-adaptation.md#frame-chaining) | 目标模式需要首帧或首尾帧时，用身份、场景、道具资产图生成该镜头的开场状态；核对手臂数量与左右，保存修正记录 |
+| 可选执行策略 | [连续准备与按场准备资产](references/state-and-revision.md#s7-10) | 仅用户明确选择后启用；记录决定依据，正式段仍逐段交付 |
 | 镜头连接细化 | [连接判断与相关方法](references/transitions.md#transition-entry)、适用镜头／预算／状态规则 | 已有项目的段内切镜、相邻段或指定素材；先核对连接依据与不变量，文字阶段记计划，有媒体再校准实际出入点 |
 | 模型提交适配 | [适配规则](references/model-adaptation.md#s5-2)、[素材职责](references/asset-templates.md)、适用预算及状态规则 | 有效母稿、同版原剧本及 speech_id 话轮卡、预算、真实素材职责和模型能力依据；不可只比母稿摘要 |
 | 历史返修 | 原产物任务的全部必要资料＋[返修规则](references/state-and-revision.md#s7-6) | 历史版本、要求、覆盖、预算、物理末态和观看依赖；完整重交付，复算受影响部分 |
@@ -64,7 +66,7 @@ description: >
 
 ## 七步流程与逐轮交付
 
-固定execution_mode=REVIEW、step_policy=STRICT、segment_delivery=ONE_AT_A_TIME。每轮入口锁定唯一target=next_required，只完成该单元；完成后设置awaiting_continue=true并停止。“继续”只授权当前下一单元，不是永久批量授权。“一次出完”“只要Prompt”不自动撤销逐步规则；只有用户明确修改执行规则时才调整。
+默认execution_mode=REVIEW、step_policy=STRICT、segment_delivery=ONE_AT_A_TIME。用户明确选择时，可改用[连续准备或按场准备资产](references/state-and-revision.md#s7-10)；正式段仍逐段交付。每轮入口锁定唯一target=next_required，只完成该单元；完成后设置awaiting_continue=true并停止。例外只有BATCH_PREP：同一轮可依次完成多个准备单元，每个单元仍先锁定为唯一目标、保存后再取下一个，停止条件见7.10。SCENE_ASSETS改变的是资产在流程中的位置，下文第一至三步写的“只设置首个人物单元”“只设置第三步第一个场景目标”“只设置第四步EPxx_PLAN”在该策略下改按7.10。“继续”只授权当前下一单元，不是永久批量授权。“一次出完”“只要Prompt”不自动撤销逐步规则；只有用户明确修改执行规则时才调整。
 
 用户要求“直接给完整版”“不要预览”或跳过确认，只改变交付方式，不豁免画幅、画面质感、单段时长上限三项确认。三项未齐时仍只交付分析、完整风格候选和选择请求，不输出正式视频段或审阅预览；预览本身也不能在三项未确认时启用。用户已明确决定同项时按其决定，不重复询问。
 
@@ -96,13 +98,15 @@ description: >
 3. 单段时长上限：每段最多允许多少秒？
    根据台词密度、动作完整性和已知平台限制给出建议秒数及理由，可建议15、20、30秒或其他适用值，但不得默认为30秒。强调这是上限，不要求每段凑满。用户选值后再按[时长计算](references/timing.md)实算和拆段；平台限制已知且与选择冲突时说明具体冲突并请用户重选，不静默改成另一个数。
 
+另可附一个不阻断的可选问题：打算用哪个平台或模型生成视频？用户回答后，段长建议参考该模型的真实时长选项，适配稿成为默认复制的版本；不回答时记UNKNOWN，不影响分析、三项确认和通用母稿。
+
 三项确认卡使用字段：video_aspect_ratio、visual_style、segment_max_s；每项分别保存recommended、selected、status=PENDING／CONFIRMED和decision_ref。建议不是selected。用户说“按你推荐的三项”且当前三项推荐唯一明确时，可据此把三项记录为已确认；只说“继续”不能代替未给出的选择。
 
 尚有任何未确认项时，project_status=IN_PROGRESS、project_analysis_status=DONE、production_settings_status=WAIT_CONFIRM、next_required=WAIT_USER，blocking_items.step_id=PROJECT_BASELINE，列清具体缺项，awaiting_continue=false。本轮不输出人物、场景、道具提示词或正式视频段。
 
 用户只回答部分时，保存已确认值，仅追问剩余项，不重跑已完成分析。三个条件均确认且实际依据齐备后，production_settings_status=CONFIRMED、project_status=DONE，记录确认版project_decisions及step_ledger；只设置第二步首个人物单元和awaiting_continue=true，本轮停止，下一条“继续”才输出人物资产。
 
-默认用文字建立全片风格，不要求质感图。用户提供图片并要求学习时，真实查看后将采用特征转为完整统一风格正文，保存source、version与实际解析，确认采用后记visual_reference_status=IMAGE_READY；不表示已上传或绑定视频平台。无图而确认文字质感时记TEXT_READY，不冒充读图。visual_style保存采用正文全文、版本、适用范围与确认依据，不只记风格名。未确认建议不能记READY。用户指定必须按图而图不可读时保留真实缺口；仅提供可选参考图不应阻断已有有效文字风格。
+默认用文字建立全片风格，不要求质感图。用户提供图片并要求学习时，真实查看后将采用特征转为完整统一风格正文，保存source、version与实际解析，确认采用后记visual_reference_status=IMAGE_READY；不表示已上传或绑定视频平台。无图而确认文字质感时记TEXT_READY，不冒充读图。visual_style保存采用正文全文、版本、适用范围与确认依据，不只记风格名。未确认建议不能记READY。用户只给方向（如“写实电影感”“偏冷”）时，AI据此写出的完整风格正文是建议：存入production_settings.visual_style.recommended，status保持PENDING、本步仍WAIT_USER，展示全文请用户采用或修改；用户明确采用或改定后才写入selected与visual_style，用户原话之外的细节不算已决定。用户指定必须按图而图不可读时保留真实缺口；仅提供可选参考图不应阻断已有有效文字风格。
 
 ### 第二步 人物资产 母图与四视图成套交付 ASSET_RUNNING／CHARACTER
 
@@ -185,12 +189,12 @@ description: >
 - 母稿与适配版本关联存 `prompt_versions`；预算及实测依据存话轮卡与 `budget_ref` 指向记录。
 - 交付、检查、真实任务与媒体观察归所属 `step_ledger`；返修及待补事项保存 `edit_context`／`return_to`；恢复证据存 `recovery_evidence`。
 - 沿用[完整 RUN_STATE](references/state-and-revision.md#s7-3)的 75 个顶层字段；1.9扩展链内游标和请求生命周期，按实际语义迁移，不只替换版本标签。
-- 有可执行环境时按[机械校验说明](references/validation.md)检查JSON候选的字段、区间、前缀、版本和预算，再核对人工语义与真实交付证据；错误先修正，未执行的校验明确记录。工具不能从自由文本推断缺失事实，无工具时按相同不变量核对并保存完整必要状态。
+- 有可执行环境时按[机械校验说明](references/validation.md)检查JSON候选的字段、区间、前缀、前驱、版本和预算，再核对人工语义与真实交付证据；错误先修正，未执行的校验明确记录。新项目用 `init` 建初始状态；续作读 `summary` 的精简视图，用 `patch` 生成并提交候选；短回执用 `receipt` 从状态生成；正文用 `prompt_lint.py` 检查措辞、时间码、风格、身高和原台词。工具不能从自由文本推断缺失事实，无工具时按相同不变量核对并保存完整必要状态。
 - 按[持久保存规则](references/state-and-revision.md#s7-2)检查实际写入后再报告成功；替换前失败时保留上一有效状态并交付必要会话状态，已替换后的清理告警按实际提交结果报告。
 
 ## 交付检查
 
-完成当前目标前核对：适用模板完整、原台词事实与揭示顺序无改、风格和当前造型一致、预算与正文一致、首尾空间和观看状态有据。根据当前任务分别记录 TEXT、INPUT、CAPABILITY、MEDIA 检查；各项用 status、scope、evidence 保存结论、实际范围和依据。PASS 的 evidence 须能定位本项实际核对的项目材料、产物或检查记录，也可引用标明对应范围的读取轨迹；只有“已读／已核对”的描述不足以支持 PASS。证据不足时如实保存缺项，未执行的媒体检查为 NOT_RUN，不以程序通过替代各项实际检查。短回执的目标状态须与实际状态一致；交付条件计划或问题说明，不代表受阻的适配／提交目标已完成。
+完成当前目标前核对：适用模板完整、原台词事实与揭示顺序无改、风格和当前造型一致、预算与正文一致、首尾空间和观看状态有据。根据当前任务分别记录 TEXT（原文、时间与连续性）、INPUT（素材与参数准备，纯文字步骤为 NOT_APPLICABLE）、CAPABILITY（目标模式的已核实能力）、MEDIA（实际结果观察）检查；各项用 status、scope、evidence 保存结论、实际范围和依据。PASS 的 evidence 须能定位本项实际核对的项目材料、产物或检查记录，也可引用标明对应范围的读取轨迹；只有“已读／已核对”的描述不足以支持 PASS。证据不足时如实保存缺项，未执行的媒体检查为 NOT_RUN，不以程序通过替代各项实际检查。短回执的目标状态须与实际状态一致，有可执行环境时用 `receipt` 从状态生成；交付条件计划或问题说明，不代表受阻的适配／提交目标已完成。交给模型的正文按[可执行的措辞](references/shot-writing.md#s3-9)核对，不把制作用语、世界方向或过程否定留在镜头里。
 
 新正式段完成本轮要求的交付和检查后，只提交一次覆盖；后补适配、普通重发、媒体生成或观察不重复消费剧情。原续作目标保存在 `return_to`／`edit_context`，受阻时当前可为 WAIT_USER，补齐后恢复并停止。局部返修保留正确内容，按实际依赖决定后续失效，不能以历史最大段号代替连续有效前缀。
 
