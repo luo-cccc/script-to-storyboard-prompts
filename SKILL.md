@@ -11,7 +11,7 @@ description: >
 
 # 剧本转分镜提示词
 
-技能包版本：0.5.0。当前规则与项目状态版本：1.9；`workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4`。原始单文本v1.8保留为历史迁移基线。
+技能包版本：0.6.0。当前规则与项目状态版本：1.9；`workflow_schema=SINGLE_TEXT_CONFIRMED_ASSET_STAGES_V4`。原始单文本v1.8保留为历史迁移基线。
 
 将中文剧本、剧情或动作笔记依次整理成项目分析、完整资产图片提示词、集场分析、预算分段及完整视频母稿。用户指定模型和模式后，按[模型提交适配](references/model-adaptation.md#s5-2)从同版母稿派生提交稿，核对真实输入与能力限制。
 
